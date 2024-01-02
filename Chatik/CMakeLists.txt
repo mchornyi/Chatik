@@ -11,6 +11,8 @@ endif()
 
 project ("Chatik")
 
+add_subdirectory(${PROJECT_SOURCE_DIR}/unittest-cpp)
+
 file(GLOB SOURCES ${PROJECT_SOURCE_DIR}/src/*.cpp ${PROJECT_SOURCE_DIR}/src/*.h)
 
 # Add source to this project's executable.
@@ -23,5 +25,7 @@ endif()
 if(WIN32)
   target_link_libraries(Chatik ws2_32)
 endif()
+
+target_link_libraries(Chatik UnitTest++)
 
 # TODO: Add tests and install targets if needed.
