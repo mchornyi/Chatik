@@ -1,18 +1,20 @@
 #include "Chatik.h"
 #include "ChatikCommon.h"
+#include "SocketUtil.h"
 
 #include "UnitTest++/UnitTest++.h"
 
 using namespace std;
 
-TEST(Sanity)
-{
-    CHECK_EQUAL(1, 1);
-}
-
 int main()
 {
+    Chatik::SocketUtil::StaticInit();
+
     cout << "I'm Chatik." << endl;
 
-    return UnitTest::RunAllTests();
+    const int result = UnitTest::RunAllTests();
+
+    Chatik::SocketUtil::CleanUp();
+
+    return result;
 }

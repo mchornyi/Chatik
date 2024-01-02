@@ -14,9 +14,10 @@ project ("Chatik")
 add_subdirectory(${PROJECT_SOURCE_DIR}/unittest-cpp)
 
 file(GLOB SOURCES ${PROJECT_SOURCE_DIR}/src/*.cpp ${PROJECT_SOURCE_DIR}/src/*.h)
+file(GLOB TESTS_SOURCES ${PROJECT_SOURCE_DIR}/tests/*.cpp ${PROJECT_SOURCE_DIR}/tests/*.h)
 
 # Add source to this project's executable.
-add_executable (Chatik ${SOURCES})
+add_executable(Chatik ${SOURCES} ${TESTS_SOURCES})
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET Chatik PROPERTY CXX_STANDARD 20)

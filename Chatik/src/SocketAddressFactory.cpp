@@ -21,9 +21,9 @@ SocketAddressPtr SocketAddressFactory::CreateIPv4FromString(const string &inStri
     addrinfo hint = {};
     hint.ai_family = AF_INET;
 
-    addrinfo *result;
+    addrinfo *result = nullptr;
     const int error = getaddrinfo(host.c_str(), service.c_str(), &hint, &result);
-    if (error != 0 && result != nullptr)
+    if (error != 0)
     {
         ReportSocketError("SocketAddressFactory::CreateIPv4FromString");
         return nullptr;
