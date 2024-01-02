@@ -11,11 +11,17 @@ endif()
 
 project ("Chatik")
 
+file(GLOB SOURCES ${PROJECT_SOURCE_DIR}/src/*.cpp ${PROJECT_SOURCE_DIR}/src/*.h)
+
 # Add source to this project's executable.
-add_executable (Chatik "src/Chatik.cpp" "src/Chatik.h")
+add_executable (Chatik ${SOURCES})
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET Chatik PROPERTY CXX_STANDARD 20)
+endif()
+
+if(WIN32)
+  target_link_libraries(Chatik ws2_32)
 endif()
 
 # TODO: Add tests and install targets if needed.
