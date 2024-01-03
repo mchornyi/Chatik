@@ -39,6 +39,12 @@ using std::string;
 using std::unique_ptr;
 using std::vector;
 
+enum SocketAddressFamily
+{
+  INET = AF_INET,
+  INET6 = AF_INET6
+};
+
 #if !_WIN32
 extern const char **__argv;
 extern int __argc;

@@ -4,31 +4,28 @@
 #include "TCPSocket.h"
 #include "UDPSocket.h"
 
-namespace Chatik
+namespace Chatik {
+
+class SocketUtil
 {
-    enum SocketAddressFamily
-    {
-        INET = AF_INET,
-        INET6 = AF_INET6
-    };
+public:
+  static bool StaticInit();
+  static void CleanUp();
 
-    class SocketUtil
-    {
-    public:
-        static bool StaticInit();
-        static void CleanUp();
+  static int Select(const vector<TCPSocketPtr>* inReadSet,
+                    vector<TCPSocketPtr>* outReadSet,
+                    const vector<TCPSocketPtr>* inWriteSet,
+                    vector<TCPSocketPtr>* outWriteSet,
+                    const vector<TCPSocketPtr>* inExceptSet,
+                    vector<TCPSocketPtr>* outExceptSet);
 
-        static int Select(const vector<TCPSocketPtr>* inReadSet, vector<TCPSocketPtr>* outReadSet,
-                          const vector<TCPSocketPtr>* inWriteSet, vector<TCPSocketPtr>* outWriteSet,
-                          const vector<TCPSocketPtr>* inExceptSet, vector<TCPSocketPtr>* outExceptSet);
+private:
+  static fd_set* FillSetFromVector(fd_set& outSet,
+                                   const vector<TCPSocketPtr>* inSockets,
+                                   int& ioNaxNfds);
 
-        static UDPSocketPtr CreateUDPSocket(SocketAddressFamily inFamily);
-        static TCPSocketPtr CreateTCPSocket(SocketAddressFamily inFamily);
-
-    private:
-        static fd_set* FillSetFromVector(fd_set& outSet, const vector<TCPSocketPtr>* inSockets, int& ioNaxNfds);
-
-        static void FillVectorFromSet(vector<TCPSocketPtr>* outSockets, const vector<TCPSocketPtr>* inSockets,
-                                      const fd_set& inSet);
-    };
+  static void FillVectorFromSet(vector<TCPSocketPtr>* outSockets,
+                                const vector<TCPSocketPtr>* inSockets,
+                                const fd_set& inSet);
+};
 } // namespace Chatik

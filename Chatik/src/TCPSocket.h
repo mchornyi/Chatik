@@ -1,31 +1,41 @@
 #pragma once
+#include "BaseSocket.h"
 #include "SocketAddress.h"
 
-namespace Chatik
+namespace Chatik {
+using TCPSocketPtr = class TCPSocket*;
+
+class TCPSocket : public BaseSocket
 {
-using TCPSocketPtr = class TCPSocket *;
+public:
+  static TCPSocketPtr CreateTCPSocket(SocketAddressFamily inFamily)
+  {
+    const SOCKET s = socket(inFamily, SOCK_STREAM, IPPROTO_TCP);
 
-class TCPSocket
-{
-  public:
-    ~TCPSocket();
-
-    int Connect(const SocketAddress &inAddress) const;
-    int Bind(const SocketAddress &inBindAddress) const;
-    int Listen(int inBackLog = 32) const;
-
-    TCPSocketPtr Accept(SocketAddress &inFromAddress) const;
-    int32_t Send(const void *inData, size_t inLen) const;
-    int32_t Receive(void *inData, size_t inLen) const;
-
-  private:
-    friend class SocketUtil;
-    TCPSocket(SOCKET inSocket) : mSocket(inSocket)
-    {
+    if (s != INVALID_SOCKET) {
+      return TCPSocketPtr(new TCPSocket(s));
+    } else {
+      ReportSocketError("SocketUtil::CreateTCPSocket");
+      return nullptr;
     }
+  }
 
-  private:
-    SOCKET mSocket;
+  ~TCPSocket();
+
+  int Connect(const SocketAddress& inAddress) const;
+  int Bind(const SocketAddress& inBindAddress) const;
+  int Listen(int inBackLog = 32) const;
+
+  TCPSocketPtr Accept(SocketAddress& inFromAddress) const;
+  int32_t Send(const void* inData, size_t inLen) const;
+  int32_t Receive(void* inData, size_t inLen) const;
+
+private:
+  friend class SocketUtil;
+  TCPSocket(SOCKET inSocket)
+    : BaseSocket(inSocket)
+  {
+  }
 };
 
 } // namespace Chatik

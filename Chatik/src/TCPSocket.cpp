@@ -4,11 +4,6 @@ using namespace Chatik;
 
 TCPSocket::~TCPSocket()
 {
-#if _WIN32
-    closesocket(mSocket);
-#else
-    close(mSocket);
-#endif
 }
 
 int TCPSocket::Connect(const SocketAddress& inAddress) const
