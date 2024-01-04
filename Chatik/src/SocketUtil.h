@@ -2,7 +2,6 @@
 
 #include "ChatikCommon.h"
 #include "TCPSocket.h"
-#include "UDPSocket.h"
 
 namespace Chatik {
 
@@ -19,8 +18,7 @@ public:
                     const vector<TCPSocketPtr>* inExceptSet,
                     vector<TCPSocketPtr>* outExceptSet);
 
-private:
-  static fd_set* FillSetFromVector(fd_set& outSet,
+  static void FillSetFromVector(fd_set& outSet,
                                    const vector<TCPSocketPtr>* inSockets,
                                    int& ioNaxNfds);
 

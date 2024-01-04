@@ -1,9 +1,10 @@
 #include "../src/SocketUtil.h"
 #include "UnitTest++/UnitTest++.h"
+#include "../src/UDPSocket.h"
 
 using namespace Chatik;
 
-SUITE(SocketUtilTest)
+SUITE(SocketCreationTest)
 {
   TEST(CreateUDPSocketTest)
   {
@@ -14,7 +15,7 @@ SUITE(SocketUtilTest)
     int iSocketType = 0;
     int iProtocol = 0;
 #if _WIN32
-    WSAPROTOCOL_INFO socket_info{};
+    WSAPROTOCOL_INFOW socket_info{};
     int size = sizeof(socket_info);
 
     res = getsockopt(
@@ -61,7 +62,7 @@ SUITE(SocketUtilTest)
     int iSocketType = 0;
     int iProtocol = 0;
 #if _WIN32
-    WSAPROTOCOL_INFO socket_info{};
+    WSAPROTOCOL_INFOW socket_info{};
     int size = sizeof(socket_info);
 
     res = getsockopt(
@@ -95,6 +96,20 @@ SUITE(SocketUtilTest)
     REQUIRE CHECK_EQUAL(0, res);
     CHECK_EQUAL(SOCK_STREAM, iSocketType);
     CHECK_EQUAL(IPPROTO_TCP, iProtocol);
+
+    delete s;
+  }
+
+  TEST(SetNonBlockingUDPSocketTest)
+  {
+    UDPSocketPtr s = UDPSocket::CreateUDPSocket(INET);
+    REQUIRE CHECK(s != nullptr);
+
+    int res = s->SetNonBlockingMode(true);
+    CHECK_EQUAL(NO_ERROR, res);
+
+    res = s->SetNonBlockingMode(false);
+    CHECK_EQUAL(NO_ERROR, res);
 
     delete s;
   }

@@ -24,7 +24,7 @@ SocketUtil::CleanUp()
 #endif
 }
 
-fd_set*
+void
 SocketUtil::FillSetFromVector(fd_set& outSet,
                               const vector<TCPSocketPtr>* inSockets,
                               int& ioNaxNfds)
@@ -38,9 +38,6 @@ SocketUtil::FillSetFromVector(fd_set& outSet,
       ioNaxNfds = std::max(ioNaxNfds, socket->mSocket);
 #endif
     }
-    return &outSet;
-  } else {
-    return nullptr;
   }
 }
 
@@ -68,15 +65,15 @@ SocketUtil::Select(const vector<TCPSocketPtr>* inReadSet,
                    vector<TCPSocketPtr>* outExceptSet)
 {
   // build up some sets from our vectors
-  fd_set read, write, except;
+  fd_set read{}, write{}, except{};
 
   int nfds = 0;
 
-  fd_set* readPtr = FillSetFromVector(read, inReadSet, nfds);
-  fd_set* writePtr = FillSetFromVector(write, inWriteSet, nfds);
-  fd_set* exceptPtr = FillSetFromVector(except, inExceptSet, nfds);
+  FillSetFromVector(read, inReadSet, nfds);
+  FillSetFromVector(write, inWriteSet, nfds);
+  FillSetFromVector(except, inExceptSet, nfds);
 
-  const int toRet = select(nfds + 1, readPtr, writePtr, exceptPtr, nullptr);
+  const int toRet = select(nfds + 1, &read, &write, &except, nullptr);
 
   if (toRet > 0) {
     FillVectorFromSet(outReadSet, inReadSet, read);
