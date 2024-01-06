@@ -11,6 +11,8 @@ SUITE(SocketCreationTest)
     UDPSocketPtr s = UDPSocket::CreateUDPSocket(INET);
     REQUIRE CHECK(s != nullptr);
 
+    CHECK_EQUAL(true, s->IsValid());
+
     int res = -1;
     int iSocketType = 0;
     int iProtocol = 0;
@@ -57,6 +59,8 @@ SUITE(SocketCreationTest)
   {
     TCPSocketPtr s = TCPSocket::CreateTCPSocket(INET);
     REQUIRE CHECK(s != nullptr);
+
+    CHECK_EQUAL(true, s->IsValid());
 
     int res = -1;
     int iSocketType = 0;

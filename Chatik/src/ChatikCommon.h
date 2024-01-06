@@ -14,11 +14,11 @@ typedef int socklen_t;
 #include <fcntl.h>
 #include <netdb.h>
 #include <netinet/in.h>
+#include <stdarg.h>
+#include <string.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <stdarg.h>
-#include <string.h>
 // typedef void* receiveBufer_t;
 typedef int SOCKET;
 const int NO_ERROR = 0;
@@ -46,40 +46,42 @@ enum SocketAddressFamily
 };
 
 #if !_WIN32
-extern const char **__argv;
+extern const char** __argv;
 extern int __argc;
 
-inline void OutputDebugString(const char *inString)
+inline void
+OutputDebugString(const char* inString)
 {
-    printf("%s", inString);
+  printf("%s", inString);
 }
 #endif
 
 #pragma region LOG
-inline string GetCommandLineArg(int inIndex)
+inline string
+GetCommandLineArg(int inIndex)
 {
-    if (inIndex < __argc)
-    {
-        return string(__argv[inIndex]);
-    }
+  if (inIndex < __argc) {
+    return string(__argv[inIndex]);
+  }
 
-    return {};
+  return {};
 }
 
-inline string Sprintf(const char *inFormat, ...)
+inline string
+Sprintf(const char* inFormat, ...)
 {
-    // not thread safe...
-    static char temp[4096];
+  // not thread safe...
+  static char temp[4096];
 
-    va_list args;
-    va_start(args, inFormat);
+  va_list args;
+  va_start(args, inFormat);
 
 #if _WIN32
-    _vsnprintf_s(temp, 4096, 4096, inFormat, args);
+  _vsnprintf_s(temp, 4096, 4096, inFormat, args);
 #else
-    vsnprintf(temp, 4096, inFormat, args);
+  vsnprintf(temp, 4096, inFormat, args);
 #endif
-    return string(temp);
+  return string(temp);
 }
 
 // void Log( const char* inFormat )
@@ -88,21 +90,22 @@ inline string Sprintf(const char *inFormat, ...)
 // 	OutputDebugString( "\n" );
 // }
 
-inline void Log(const char *inFormat, ...)
+inline void
+Log(const char* inFormat, ...)
 {
-    // not thread safe...
-    static char temp[4096];
+  // not thread safe...
+  static char temp[4096];
 
-    va_list args;
-    va_start(args, inFormat);
+  va_list args;
+  va_start(args, inFormat);
 
 #if _WIN32
-    _vsnprintf_s(temp, 4096, 4096, inFormat, args);
+  _vsnprintf_s(temp, 4096, 4096, inFormat, args);
 #else
-    vsnprintf(temp, 4096, inFormat, args);
+  vsnprintf(temp, 4096, inFormat, args);
 #endif
-    OutputDebugString(temp);
-    OutputDebugString("\n");
+  OutputDebugString(temp);
+  OutputDebugString("\n");
 }
 
 #define LOG(...) Log(__VA_ARGS__)
@@ -110,27 +113,45 @@ inline void Log(const char *inFormat, ...)
 #pragma endregion LOG
 
 #pragma region ERROR
-inline int GetLastSocketError()
+inline int
+GetLastSocketError()
 {
 #if _WIN32
-    return WSAGetLastError();
+  return WSAGetLastError();
 #else
-    return errno;
+  return errno;
 #endif
 }
 
-inline void ReportSocketError(const char *inOperationDesc)
+inline void
+ReportSocketError(const char* inOperationDesc)
 {
 #if _WIN32
-    LPVOID lpMsgBuf;
-    const DWORD errorNum = GetLastSocketError();
+  LPVOID lpMsgBuf;
+  const DWORD errorNum = GetLastSocketError();
 
-    FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL,
-                  errorNum, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&lpMsgBuf, 0, NULL);
+  FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
+                  FORMAT_MESSAGE_IGNORE_INSERTS,
+                NULL,
+                errorNum,
+                MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                (LPTSTR)&lpMsgBuf,
+                0,
+                NULL);
 
-    LOG("Error %s: %d- %s", inOperationDesc, errorNum, lpMsgBuf);
+  LOG("Error %s: %d- %s", inOperationDesc, errorNum, lpMsgBuf);
 #else
-    LOG("Error: %hs", inOperationDesc);
+  LOG("Error: %hs", inOperationDesc);
 #endif
 }
 #pragma endregion ERROR
+
+#define WAIT_FOR(exp, timeout)                                                 \
+  {                                                                            \
+    int i = 0;                                                                 \
+    while (!(exp)) {                                                           \
+      if (i++ > timeout)                                                       \
+        break;                                                                 \
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));               \
+    }                                                                          \
+  }
