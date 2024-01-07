@@ -1,98 +1,84 @@
 #pragma once
 #include "ChatikCommon.h"
 
-namespace Chatik
-{
+namespace Chatik {
 class SocketAddress
 {
-  public:
-    SocketAddress(uint32_t inAddress, uint16_t inPort)
-    {
-        GetAsSockAddrIn()->sin_family = AF_INET;
-        GetIP4Ref() = htonl(inAddress);
-        GetAsSockAddrIn()->sin_port = htons(inPort);
-    }
+public:
+  SocketAddress(uint32_t inAddress, uint16_t inPort)
+    : mSockAddrRef(reinterpret_cast<sockaddr_in&>(mSockAddr))
+  {
+    mSockAddrRef.sin_family = AF_INET;
+    SetIP4(htonl(inAddress));
+    mSockAddrRef.sin_port = htons(inPort);
+  }
 
-    SocketAddress(const sockaddr &inSockAddr)
-    {
-        memcpy(&mSockAddr, &inSockAddr, sizeof(sockaddr));
-    }
+  SocketAddress(const sockaddr& inSockAddr)
+    : mSockAddrRef(reinterpret_cast<sockaddr_in&>(mSockAddr))
+  {
+    memcpy(&mSockAddr, &inSockAddr, sizeof(sockaddr));
+  }
 
-    SocketAddress()
-    {
-        GetAsSockAddrIn()->sin_family = AF_INET;
-        GetIP4Ref() = INADDR_ANY;
-        GetAsSockAddrIn()->sin_port = 0;
-    }
+  SocketAddress()
+    : mSockAddrRef(reinterpret_cast<sockaddr_in&>(mSockAddr))
+  {
+    mSockAddrRef.sin_family = AF_INET;
+    SetIP4(INADDR_ANY);
+    mSockAddrRef.sin_port = 0;
+  }
 
-    bool operator==(const SocketAddress &inOther) const
-    {
-        return (mSockAddr.sa_family == AF_INET && GetAsSockAddrIn()->sin_port == inOther.GetAsSockAddrIn()->sin_port) &&
-               (GetIP4Ref() == inOther.GetIP4Ref());
-    }
+  bool operator==(const SocketAddress& inOther) const
+  {
+    return (mSockAddr.sa_family == AF_INET &&
+            mSockAddrRef.sin_port == inOther.mSockAddrRef.sin_port) &&
+           (GetIP4() == inOther.GetIP4());
+  }
 
-    size_t GetHash() const
-    {
-        return (GetIP4Ref()) | ((static_cast<uint32_t>(GetAsSockAddrIn()->sin_port)) << 13) | mSockAddr.sa_family;
-    }
+  bool IsValid() const
+  {
+    bool res = (mSockAddr.sa_family == AF_INET);
+    res &= (GetIP4() != INADDR_ANY);
+    return res;
+  }
 
-    uint32_t GetSize() const
-    {
-        return sizeof(sockaddr);
-    }
+  size_t GetHash() const
+  {
+    return (GetIP4()) | ((static_cast<uint32_t>(mSockAddrRef.sin_port)) << 13) |
+           mSockAddr.sa_family;
+  }
 
-    string ToString() const;
+  static uint32_t GetSize() { return sizeof(sockaddr); }
 
-  private:
-    friend class UDPSocket;
-    friend class TCPSocket;
+  string ToString() const;
+
+private:
+  friend class UDPSocket;
+  friend class TCPSocket;
 
 #if _WIN32
-    uint32_t &GetIP4Ref()
-    {
-        return *reinterpret_cast<uint32_t *>(&GetAsSockAddrIn()->sin_addr.S_un.S_addr);
-    }
-
-    const uint32_t &GetIP4Ref() const
-    {
-        return *reinterpret_cast<const uint32_t *>(&GetAsSockAddrIn()->sin_addr.S_un.S_addr);
-    }
+  uint32_t GetIP4() const { return mSockAddrRef.sin_addr.s_addr; }
+  void SetIP4(ULONG value) { mSockAddrRef.sin_addr.s_addr = value; }
 #else
-    uint32_t &GetIP4Ref()
-    {
-        return GetAsSockAddrIn()->sin_addr.s_addr;
-    }
-    const uint32_t &GetIP4Ref() const
-    {
-        return GetAsSockAddrIn()->sin_addr.s_addr;
-    }
+  uint32_t GetIP4() const { return mSockAddrRef.sin_addr.s_addr; }
+  void SetIP4(uint32_t value) { mSockAddrRef.sin_addr.s_addr = value; }
 #endif
 
-    sockaddr_in *GetAsSockAddrIn()
-    {
-        return reinterpret_cast<sockaddr_in *>(&mSockAddr);
-    }
-
-    const sockaddr_in *GetAsSockAddrIn() const
-    {
-        return reinterpret_cast<const sockaddr_in *>(&mSockAddr);
-    }
-
-  private:
-    sockaddr mSockAddr;
+private:
+  sockaddr mSockAddr;
+  sockaddr_in& mSockAddrRef;
 };
 
 typedef SocketAddress* SocketAddressPtr;
 
 } // namespace Chatik
 
-namespace std
+namespace std {
+template<>
+struct hash<Chatik::SocketAddress>
 {
-template <> struct hash<Chatik::SocketAddress>
-{
-    size_t operator()(const Chatik::SocketAddress &inAddress) const
-    {
-        return inAddress.GetHash();
-    }
+  size_t operator()(const Chatik::SocketAddress& inAddress) const
+  {
+    return inAddress.GetHash();
+  }
 };
 } // namespace std

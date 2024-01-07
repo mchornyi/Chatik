@@ -11,6 +11,8 @@ public:
   static bool StaticInit();
   static void CleanUp();
 
+  static SocketAddress CreateIPv4FromString(const string& inString);
+
   static int Select(const vector<TCPSocketPtr>* inReadSet,
                     vector<TCPSocketPtr>* outReadSet,
                     const vector<TCPSocketPtr>* inWriteSet,

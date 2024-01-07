@@ -24,4 +24,13 @@ SUITE(SocketUtilTest)
 
     CHECK_EQUAL(0, outSockets.size());
   }
+
+  TEST(SocketAddressFactoryTest)
+  {
+    const Chatik::SocketAddress address = Chatik::SocketUtil::CreateIPv4FromString("www.cplusplus.com");
+
+    REQUIRE CHECK(address.IsValid());
+
+    CHECK_EQUAL("54.39.7.252:0", address.ToString());
+  }
 }

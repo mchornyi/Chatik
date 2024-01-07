@@ -2,9 +2,7 @@
 
 using namespace Chatik;
 
-UDPSocket::~UDPSocket()
-{
-}
+UDPSocket::~UDPSocket() {}
 
 int
 UDPSocket::Bind(const SocketAddress& inToAddress) const
