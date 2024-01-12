@@ -45,9 +45,9 @@ TCPSocketPtr TCPSocket::Accept(SocketAddress& inFromAddress) const
     }
 }
 
-int32_t TCPSocket::Send(const void* inData, size_t inLen) const
+int TCPSocket::Send(const void* inData, size_t inDataSize) const
 {
-    const int bytesSentCount = send(mSocket, static_cast<const char*>(inData), static_cast<int>(inLen), 0);
+    const int bytesSentCount = send(mSocket, static_cast<const char*>(inData), static_cast<int>(inDataSize), 0);
 
     if (bytesSentCount < 0)
     {
@@ -58,9 +58,9 @@ int32_t TCPSocket::Send(const void* inData, size_t inLen) const
     return bytesSentCount;
 }
 
-int32_t TCPSocket::Receive(void* inData, size_t inLen) const
+int TCPSocket::Receive(void* inBuffer, size_t inMaxLen) const
 {
-    const int bytesReceivedCount = recv(mSocket, static_cast<char*>(inData), static_cast<int>(inLen), 0);
+    const int bytesReceivedCount = recv(mSocket, static_cast<char*>(inBuffer), static_cast<int>(inMaxLen), 0);
 
     if (bytesReceivedCount < 0)
     {
@@ -69,17 +69,4 @@ int32_t TCPSocket::Receive(void* inData, size_t inLen) const
     }
 
     return bytesReceivedCount;
-}
-
-int TCPSocket::Bind(const SocketAddress& inBindAddress) const
-{
-    const int error = bind(mSocket, &inBindAddress.mSockAddr, inBindAddress.GetSize());
-
-    if (error != 0)
-    {
-        ReportSocketError("TCPSocket::Bind");
-        return GetLastSocketError();
-    }
-
-    return NO_ERROR;
 }

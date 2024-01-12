@@ -1,15 +1,20 @@
 #include "Host.h"
 
+#include "BaseSocket.h"
+#include "UDPSocket.h"
+
 using namespace Chatik;
 
-Host::Host(bool isServer)
-  : mSocket(UDPSocket::CreateUDPSocket(SocketAddressFamily::INET))
-  , mIsServer(isServer)
+Host::Host(bool isServer, bool useTCP /*=false*/)
+  : mIsServer(isServer)
+  , mSocket(useTCP ? nullptr
+                   : UDPSocket::CreateUDPSocket(SocketAddressFamily::INET))
 {
   int res = mSocket->SetNonBlockingMode(true);
   assert(res == NO_ERROR);
 
-  res = mSocket->Bind(SocketAddress(INADDR_ANY, isServer ? PORT_SERVER : PORT_CLIENT));
+  res = mSocket->Bind(
+    SocketAddress(INADDR_ANY, isServer ? PORT_SERVER : PORT_CLIENT));
   assert(res == NO_ERROR);
 }
 
@@ -30,7 +35,7 @@ Host::StartListen()
       SocketAddress fromAddress;
       char buffer[1500];
       const int readByteCount =
-        mSocket->ReceiveFrom(buffer, sizeof(buffer), fromAddress);
+        mSocket->Receive(buffer, sizeof(buffer), fromAddress);
 
       if (readByteCount > 0) {
         OnDataReceived(fromAddress, buffer, readByteCount);
@@ -56,9 +61,18 @@ Host::StopListening()
   return true;
 }
 
-int Host::SendData(const char* data, int dataLen, const SocketAddress& toAddress) const
+bool
+Host::IsValid() const
 {
-  return mSocket->SendTo(data, dataLen, toAddress);
+  return mSocket->IsValid();
+}
+
+int
+Host::SendData(const char* data,
+               int dataLen,
+               const SocketAddress& toAddress) const
+{
+  return mSocket->Send(data, dataLen, toAddress);
 }
 
 void

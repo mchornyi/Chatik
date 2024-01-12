@@ -47,11 +47,14 @@ public:
            mSockAddr.sa_family;
   }
 
+  static SocketAddress GetEmpty() { return {}; }
+
   static uint32_t GetSize() { return sizeof(sockaddr); }
 
   string ToString() const;
 
 private:
+  friend class BaseSocket;
   friend class UDPSocket;
   friend class TCPSocket;
 

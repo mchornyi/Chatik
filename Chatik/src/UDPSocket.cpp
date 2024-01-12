@@ -5,29 +5,16 @@ using namespace Chatik;
 UDPSocket::~UDPSocket() {}
 
 int
-UDPSocket::Bind(const SocketAddress& inToAddress) const
-{
-  const int error =
-    bind(mSocket, &inToAddress.mSockAddr, inToAddress.GetSize());
-  if (error != 0) {
-    ReportSocketError("UDPSocket::Bind");
-    return GetLastSocketError();
-  }
-
-  return NO_ERROR;
-}
-
-int
-UDPSocket::SendTo(const void* inToSend,
-                  int inLength,
-                  const SocketAddress& inToAddress) const
+UDPSocket::Send(const void* inData,
+                int inDataSize,
+                const SocketAddress& inToAddress) const
 {
   const int byteSentCount = sendto(mSocket,
-                                   static_cast<const char*>(inToSend),
-                                   inLength,
+                                   static_cast<const char*>(inData),
+                                   inDataSize,
                                    0,
                                    &inToAddress.mSockAddr,
-                                   inToAddress.GetSize());
+                                   Chatik::SocketAddress::GetSize());
   if (byteSentCount <= 0) {
     // we'll return error as negative number to indicate less than requested
     // amount of bytes sent...
@@ -39,15 +26,15 @@ UDPSocket::SendTo(const void* inToSend,
 }
 
 int
-UDPSocket::ReceiveFrom(void* inToReceive,
-                       int inMaxLength,
-                       SocketAddress& outFromAddress) const
+UDPSocket::Receive(void* inBuffer,
+                   int inMaxLen,
+                   SocketAddress& outFromAddress) const
 {
-  socklen_t fromLength = outFromAddress.GetSize();
+  socklen_t fromLength = Chatik::SocketAddress::GetSize();
 
   const int readByteCount = recvfrom(mSocket,
-                                     static_cast<char*>(inToReceive),
-                                     inMaxLength,
+                                     static_cast<char*>(inBuffer),
+                                     inMaxLen,
                                      0,
                                      &outFromAddress.mSockAddr,
                                      &fromLength);
@@ -70,26 +57,6 @@ UDPSocket::ReceiveFrom(void* inToReceive,
     return -WSAECONNRESET;
   }
 
-  ReportSocketError("UDPSocket::ReceiveFrom");
+  ReportSocketError("UDPSocket::Receive");
   return -error;
-}
-
-int
-UDPSocket::SetNonBlockingMode(bool inShouldBeNonBlocking) const
-{
-#if _WIN32
-  u_long arg = inShouldBeNonBlocking ? 1 : 0;
-  int result = ioctlsocket(mSocket, FIONBIO, &arg);
-#else
-  int flags = fcntl(mSocket, F_GETFL, 0);
-  flags = inShouldBeNonBlocking ? (flags | O_NONBLOCK) : (flags & ~O_NONBLOCK);
-  int result = fcntl(mSocket, F_SETFL, flags);
-#endif
-
-  if (result == SOCKET_ERROR) {
-    ReportSocketError("UDPSocket::SetNonBlockingMode");
-    return GetLastSocketError();
-  }
-
-  return NO_ERROR;
 }

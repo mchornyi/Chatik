@@ -1,13 +1,15 @@
 #pragma once
 
-#include <functional>
+#include "SocketAddress.h"
 
-#include "UDPSocket.h"
 #include <thread>
+#include <functional>
 
 namespace Chatik {
 static constexpr int PORT_SERVER = 5005;
 static constexpr int PORT_CLIENT = 5006;
+
+class BaseSocket;
 
 using OnDataReceiveCallback = std::function<
   void(const char* data, int dataLen, const SocketAddress& fromAddress)>;
@@ -15,14 +17,14 @@ using OnDataReceiveCallback = std::function<
 class Host
 {
 public:
-  Host(bool isServer);
+  Host(bool isServer, bool useTCP = false);
   ~Host();
 
   bool StartListen();
 
   bool StopListening();
 
-  bool IsValid() const { return mSocket->IsValid(); }
+  bool IsValid() const;
 
   bool IsListening() const
   {
@@ -44,12 +46,10 @@ private:
                       int readByteCount) const;
 
 private:
-  UDPSocketPtr mSocket;
+  bool mIsServer = false;
+  BaseSocket* mSocket;
   std::thread mListenThread;
   std::atomic_bool mIsListening = false;
-
-  OnDataReceiveCallback mOnDataReceivedCallback;
-
-  bool mIsServer = false;
+  OnDataReceiveCallback mOnDataReceivedCallback;  
 };
 } // namespace Chatik

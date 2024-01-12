@@ -23,12 +23,22 @@ public:
   ~TCPSocket();
 
   int Connect(const SocketAddress& inAddress) const;
-  int Bind(const SocketAddress& inBindAddress) const;
   int Listen(int inBackLog = 32) const;
-
   TCPSocketPtr Accept(SocketAddress& inFromAddress) const;
-  int32_t Send(const void* inData, size_t inLen) const;
-  int32_t Receive(void* inData, size_t inLen) const;
+
+  virtual int Send(const void* inData,
+                   int inDataSize,
+                   const SocketAddress& inToAddress) const override
+  {
+    return Send(inData, inDataSize);
+  }
+
+  virtual int Receive(void* inBuffer,
+                      int inMaxLen,
+                      SocketAddress& outFromAddress) const override
+  {
+    return Receive(inBuffer, inMaxLen);
+  }
 
 private:
   friend class SocketUtil;
@@ -36,6 +46,9 @@ private:
     : BaseSocket(inSocket)
   {
   }
+
+  int Send(const void* inData, size_t inDataSize) const;
+  int Receive(void* inBuffer, size_t inMaxLen) const;
 };
 
 } // namespace Chatik
