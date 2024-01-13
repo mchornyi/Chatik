@@ -8,7 +8,7 @@ using UDPSocketPtr = class UDPSocket*;
 class UDPSocket : public BaseSocket
 {
 public:
-  static UDPSocketPtr CreateUDPSocket(SocketAddressFamily inFamily)
+  static BaseSocket* CreateUDPSocket(SocketAddressFamily inFamily)
   {
     const SOCKET s = socket(inFamily, SOCK_DGRAM, IPPROTO_UDP);
 

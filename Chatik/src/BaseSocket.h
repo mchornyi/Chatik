@@ -2,7 +2,6 @@
 #include "ChatikCommon.h"
 
 namespace Chatik {
-
 class SocketAddress;
 
 class BaseSocket
@@ -75,6 +74,13 @@ public:
                       SocketAddress& outFromAddress) const
   {
     return -1;
+  }
+
+  virtual int Listen(int inBackLog = 32) const { return -1; }
+
+  virtual BaseSocket* Accept(SocketAddress& inFromAddress) const
+  {
+    return nullptr;
   }
 
 protected:

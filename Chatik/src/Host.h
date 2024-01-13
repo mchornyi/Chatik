@@ -2,8 +2,8 @@
 
 #include "SocketAddress.h"
 
-#include <thread>
 #include <functional>
+#include <thread>
 
 namespace Chatik {
 static constexpr int PORT_SERVER = 5005;
@@ -40,6 +40,10 @@ public:
     mOnDataReceivedCallback = callback;
   }
 
+  size_t GetClientCount() const { return mClientSockets.size(); }
+  bool Connect(const SocketAddress& socketAddress);
+  bool Disconnect();
+
 private:
   void OnDataReceived(const SocketAddress& fromAddress,
                       const char* data,
@@ -47,9 +51,11 @@ private:
 
 private:
   bool mIsServer = false;
+  bool mUseTCP = false;
   BaseSocket* mSocket;
   std::thread mListenThread;
   std::atomic_bool mIsListening = false;
-  OnDataReceiveCallback mOnDataReceivedCallback;  
+  OnDataReceiveCallback mOnDataReceivedCallback;
+  std::vector<BaseSocket*> mClientSockets;
 };
 } // namespace Chatik

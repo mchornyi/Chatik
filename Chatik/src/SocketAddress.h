@@ -60,7 +60,7 @@ private:
 
 #if _WIN32
   uint32_t GetIP4() const { return mSockAddrRef.sin_addr.s_addr; }
-  void SetIP4(ULONG value) { mSockAddrRef.sin_addr.s_addr = value; }
+  void SetIP4(ULONG value) const { mSockAddrRef.sin_addr.s_addr = value; }
 #else
   uint32_t GetIP4() const { return mSockAddrRef.sin_addr.s_addr; }
   void SetIP4(uint32_t value) { mSockAddrRef.sin_addr.s_addr = value; }

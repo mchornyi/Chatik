@@ -1,26 +1,34 @@
 #include "Host.h"
 
 #include "BaseSocket.h"
+#include "TCPSocket.h"
 #include "UDPSocket.h"
 
 using namespace Chatik;
 
 Host::Host(bool isServer, bool useTCP /*=false*/)
   : mIsServer(isServer)
-  , mSocket(useTCP ? nullptr
+  , mUseTCP(useTCP)
+  , mSocket(useTCP ? TCPSocket::CreateTCPSocket(SocketAddressFamily::INET)
                    : UDPSocket::CreateUDPSocket(SocketAddressFamily::INET))
 {
   int res = mSocket->SetNonBlockingMode(true);
   assert(res == NO_ERROR);
 
   res = mSocket->Bind(
-    SocketAddress(INADDR_ANY, isServer ? PORT_SERVER : PORT_CLIENT));
+    SocketAddress(INADDR_ANY, mIsServer ? PORT_SERVER : PORT_CLIENT));
   assert(res == NO_ERROR);
 }
 
 Host::~Host()
 {
   StopListening();
+
+  for (auto& socket : mClientSockets) {
+    delete socket;
+    socket = nullptr;
+  }
+
   delete mSocket;
   mSocket = nullptr;
 }
@@ -28,23 +36,43 @@ Host::~Host()
 bool
 Host::StartListen()
 {
-  mListenThread = std::thread([this]() {
-    mIsListening.store(true, std::memory_order::relaxed);
-    while (mIsListening.load(std::memory_order::relaxed)) {
+  if (!mUseTCP) {
+    mListenThread = std::thread([this]() {
+      mIsListening.store(true, std::memory_order::relaxed);
+      while (mIsListening.load(std::memory_order::relaxed)) {
 
-      SocketAddress fromAddress;
-      char buffer[1500];
-      const int readByteCount =
-        mSocket->Receive(buffer, sizeof(buffer), fromAddress);
+        SocketAddress fromAddress;
+        char buffer[1500];
+        const int readByteCount =
+          mSocket->Receive(buffer, sizeof(buffer), fromAddress);
 
-      if (readByteCount > 0) {
-        OnDataReceived(fromAddress, buffer, readByteCount);
+        if (readByteCount > 0) {
+          OnDataReceived(fromAddress, buffer, readByteCount);
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
       }
-      std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    }
-  });
+    });
 
-  return true;
+    return true;
+  } else {
+    mListenThread = std::thread([this]() {
+      mIsListening.store(true, std::memory_order::relaxed);
+      while (mIsListening.load(std::memory_order::relaxed)) {
+        if (mSocket->Listen() == NO_ERROR) {
+          SocketAddress outFromAddress;
+          if (BaseSocket* newSocket = mSocket->Accept(outFromAddress)) {
+            std::cout << "New connection from " << outFromAddress.ToString()
+                      << '\n';
+            mClientSockets.push_back(newSocket);
+          }
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+      }
+    });
+    return true;
+  }
+
+  return false;
 }
 
 bool
@@ -56,7 +84,8 @@ Host::StopListening()
 
   mIsListening.store(false, std::memory_order::relaxed);
 
-  mListenThread.join();
+  if (mListenThread.joinable())
+    mListenThread.join();
 
   return true;
 }
@@ -73,6 +102,18 @@ Host::SendData(const char* data,
                const SocketAddress& toAddress) const
 {
   return mSocket->Send(data, dataLen, toAddress);
+}
+
+bool
+Chatik::Host::Connect(const SocketAddress& socketAddress)
+{
+  return false;
+}
+
+bool
+Chatik::Host::Disconnect()
+{
+  return false;
 }
 
 void

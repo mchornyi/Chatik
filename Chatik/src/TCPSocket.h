@@ -8,7 +8,7 @@ using TCPSocketPtr = class TCPSocket*;
 class TCPSocket : public BaseSocket
 {
 public:
-  static TCPSocketPtr CreateTCPSocket(SocketAddressFamily inFamily)
+  static BaseSocket* CreateTCPSocket(SocketAddressFamily inFamily)
   {
     const SOCKET s = socket(inFamily, SOCK_STREAM, IPPROTO_TCP);
 
@@ -23,8 +23,8 @@ public:
   ~TCPSocket();
 
   int Connect(const SocketAddress& inAddress) const;
-  int Listen(int inBackLog = 32) const;
-  TCPSocketPtr Accept(SocketAddress& inFromAddress) const;
+  virtual int Listen(int inBackLog = 32) const override;
+  virtual BaseSocket* Accept(SocketAddress& outFromAddress) const override;
 
   virtual int Send(const void* inData,
                    int inDataSize,

@@ -126,10 +126,11 @@ GetLastSocketError()
 inline void
 ReportSocketError(const char* inOperationDesc)
 {
+	const int errorNum = GetLastSocketError();
+
 #if _WIN32
   LPVOID lpMsgBuf;
-  const DWORD errorNum = GetLastSocketError();
-
+  
   FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
                   FORMAT_MESSAGE_IGNORE_INSERTS,
                 NULL,
@@ -138,10 +139,11 @@ ReportSocketError(const char* inOperationDesc)
                 (LPTSTR)&lpMsgBuf,
                 0,
                 NULL);
-
-  LOG("Error %s: %d- %s", inOperationDesc, errorNum, lpMsgBuf);
+	LOG("Error %s: %d- %s", inOperationDesc, errorNum, lpMsgBuf);
 #else
-  LOG("Error: %hs", inOperationDesc);
+	char msg[64];
+	strerror_r(errorNum, msg, sizeof(msg));
+	LOG("Error %s: %d- %s", inOperationDesc, errorNum, strerror(errorNum));
 #endif
 }
 #pragma endregion ERROR

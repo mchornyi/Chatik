@@ -1,6 +1,6 @@
 #include "../src/SocketUtil.h"
-#include "UnitTest++/UnitTest++.h"
 #include "../src/UDPSocket.h"
+#include "UnitTest++/UnitTest++.h"
 
 using namespace Chatik;
 
@@ -8,7 +8,7 @@ SUITE(SocketCreationTest)
 {
   TEST(CreateUDPSocketTest)
   {
-    UDPSocketPtr s = UDPSocket::CreateUDPSocket(INET);
+    BaseSocket* s = UDPSocket::CreateUDPSocket(INET);
     REQUIRE CHECK(s != nullptr);
 
     CHECK_EQUAL(true, s->IsValid());
@@ -57,7 +57,7 @@ SUITE(SocketCreationTest)
 
   TEST(CreateTCPSocketTest)
   {
-    TCPSocketPtr s = TCPSocket::CreateTCPSocket(INET);
+    BaseSocket* s = TCPSocket::CreateTCPSocket(INET);
     REQUIRE CHECK(s != nullptr);
 
     CHECK_EQUAL(true, s->IsValid());
@@ -106,7 +106,7 @@ SUITE(SocketCreationTest)
 
   TEST(SetNonBlockingUDPSocketTest)
   {
-    UDPSocketPtr s = UDPSocket::CreateUDPSocket(INET);
+    BaseSocket* s = UDPSocket::CreateUDPSocket(INET);
     REQUIRE CHECK(s != nullptr);
 
     int res = s->SetNonBlockingMode(true);
