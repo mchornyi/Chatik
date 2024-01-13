@@ -41,8 +41,7 @@ public:
   }
 
   size_t GetClientCount() const { return mClientSockets.size(); }
-  bool Connect(const SocketAddress& socketAddress);
-  bool Disconnect();
+  bool Connect(const SocketAddress& socketAddress) const;
 
 private:
   void OnDataReceived(const SocketAddress& fromAddress,

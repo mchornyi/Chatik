@@ -39,7 +39,7 @@ TCPSocket::Accept(SocketAddress& outFromAddress) const
   } else {
     const int errorNum = GetLastSocketError();
 
-    if (errorNum != WSAEWOULDBLOCK || errorNum != EAGAIN) {
+    if (errorNum != WSAEWOULDBLOCK && errorNum != EAGAIN) {
       ReportSocketError("TCPSocket::Accept");
     }
     return nullptr;

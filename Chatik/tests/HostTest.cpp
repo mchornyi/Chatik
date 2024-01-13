@@ -171,8 +171,6 @@ SUITE(HostTest)
       WAIT_FOR(hostServer.GetClientCount() > 0, 200);
       CHECK_EQUAL(1, hostServer.GetClientCount());
 
-      CHECK_EQUAL(true, hostClient.Disconnect());
-
       CHECK_EQUAL(true, hostServer.StopListening());
       CHECK_EQUAL(false, hostServer.IsListening());
     }

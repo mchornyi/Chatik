@@ -22,7 +22,7 @@ public:
 
   ~TCPSocket();
 
-  int Connect(const SocketAddress& inAddress) const;
+  int Connect(const SocketAddress& inAddress) const override;
   virtual int Listen(int inBackLog = 32) const override;
   virtual BaseSocket* Accept(SocketAddress& outFromAddress) const override;
 

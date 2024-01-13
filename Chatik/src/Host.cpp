@@ -105,15 +105,17 @@ Host::SendData(const char* data,
 }
 
 bool
-Chatik::Host::Connect(const SocketAddress& socketAddress)
+Chatik::Host::Connect(const SocketAddress& socketAddress) const
 {
-  return false;
-}
+	int res = mSocket->SetNonBlockingMode(false);
+	assert( res == NO_ERROR );
 
-bool
-Chatik::Host::Disconnect()
-{
-  return false;
+	const int connectRes = mSocket->Connect(socketAddress);
+
+	res = mSocket->SetNonBlockingMode(true);
+	assert(res == NO_ERROR);
+
+  return connectRes == NO_ERROR;
 }
 
 void

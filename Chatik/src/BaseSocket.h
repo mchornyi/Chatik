@@ -83,6 +83,8 @@ public:
     return nullptr;
   }
 
+	virtual int Connect(const SocketAddress& inAddress) const { return -1; }
+
 protected:
   SOCKET mSocket = INVALID_SOCKET;
 };
