@@ -27,6 +27,16 @@ public:
     mSockAddrRef.sin_port = 0;
   }
 
+	SocketAddress& operator=(const SocketAddress& inOther)
+  {
+		if (this == &inOther)
+		{
+			return *this;
+		}
+  	memcpy(&mSockAddr, &inOther.mSockAddr, sizeof(sockaddr));
+		return *this;
+  }
+
   bool operator==(const SocketAddress& inOther) const
   {
     return (mSockAddr.sa_family == AF_INET &&

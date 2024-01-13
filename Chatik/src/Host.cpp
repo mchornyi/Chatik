@@ -46,9 +46,19 @@ Host::StartListen()
         const int readByteCount =
           mSocket->Receive(buffer, sizeof(buffer), fromAddress);
 
+        if (readByteCount <= SOCKET_ERROR) {
+          if (readByteCount != -WSAESHUTDOWN) {
+            std::cout << "Socket error: " << GetLastSocketError() << '\n';
+          }
+
+          mIsListening.store(false, std::memory_order::relaxed);
+          break;
+        }
+
         if (readByteCount > 0) {
           OnDataReceived(fromAddress, buffer, readByteCount);
         }
+
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
       }
     });
@@ -64,7 +74,18 @@ Host::StartListen()
             std::cout << "New connection from " << outFromAddress.ToString()
                       << '\n';
             mClientSockets.push_back(newSocket);
+          } else {
+            const int errorNum = GetLastSocketError();
+            if (errorNum != WSAEWOULDBLOCK && errorNum != EAGAIN) {
+              std::cout << "Socket error: " << GetLastSocketError() << '\n';
+              mIsListening.store(false, std::memory_order::relaxed);
+              break;
+            }
           }
+        } else {
+          std::cout << "Socket error: " << GetLastSocketError() << '\n';
+          mIsListening.store(false, std::memory_order::relaxed);
+          break;
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
       }
@@ -82,7 +103,31 @@ Host::StopListening()
     return false;
   }
 
-  mIsListening.store(false, std::memory_order::relaxed);
+  if (mUseTCP) {
+    shutdown(mSocket->GetSocket(), SD_BOTH);
+
+    const int errorNum = GetLastSocketError();
+    if (errorNum != NO_ERROR) {
+      ReportSocketError("Host::StopListening");
+    }
+    assert(errorNum == NO_ERROR);
+  }
+
+  for (const auto& socket : mClientSockets) {
+    if (mUseTCP) {
+      shutdown(socket->GetSocket(), SD_BOTH);
+
+      const int errorNum = GetLastSocketError();
+      if (errorNum != NO_ERROR) {
+        ReportSocketError("Host::StopListening");
+      }
+      assert(errorNum == NO_ERROR);
+    }
+  }
+
+  if (mIsServer || !mUseTCP) {
+    mIsListening.store(false, std::memory_order::relaxed);
+  }
 
   if (mListenThread.joinable())
     mListenThread.join();
@@ -107,13 +152,13 @@ Host::SendData(const char* data,
 bool
 Chatik::Host::Connect(const SocketAddress& socketAddress) const
 {
-	int res = mSocket->SetNonBlockingMode(false);
-	assert( res == NO_ERROR );
+  int res = mSocket->SetNonBlockingMode(false);
+  assert(res == NO_ERROR);
 
-	const int connectRes = mSocket->Connect(socketAddress);
+  const int connectRes = mSocket->Connect(socketAddress);
 
-	res = mSocket->SetNonBlockingMode(true);
-	assert(res == NO_ERROR);
+  res = mSocket->SetNonBlockingMode(true);
+  assert(res == NO_ERROR);
 
   return connectRes == NO_ERROR;
 }

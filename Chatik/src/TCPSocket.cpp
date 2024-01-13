@@ -5,7 +5,7 @@ using namespace Chatik;
 TCPSocket::~TCPSocket() {}
 
 int
-TCPSocket::Connect(const SocketAddress& inAddress) const
+TCPSocket::Connect(const SocketAddress& inAddress)
 {
   const int err =
     connect(mSocket, &inAddress.mSockAddr, Chatik::SocketAddress::GetSize());
@@ -13,6 +13,9 @@ TCPSocket::Connect(const SocketAddress& inAddress) const
     ReportSocketError("TCPSocket::Connect");
     return -GetLastSocketError();
   }
+
+	m_serverAddress = inAddress;
+
   return NO_ERROR;
 }
 
@@ -66,10 +69,28 @@ TCPSocket::Receive(void* inBuffer, size_t inMaxLen) const
   const int bytesReceivedCount =
     recv(mSocket, static_cast<char*>(inBuffer), static_cast<int>(inMaxLen), 0);
 
-  if (bytesReceivedCount < 0) {
-    ReportSocketError("TCPSocket::Receive");
-    return -GetLastSocketError();
+  const int error = GetLastSocketError();
+
+  if (error == WSAEWOULDBLOCK) {
+    return 0;
   }
 
+  if (error == WSAECONNRESET) {
+    // this can happen if a client closed and we haven't DC'd yet.
+    // this is the ICMP message being sent back saying the port on that computer
+    // is closed
+    LOG("Connection reset from %s", m_serverAddress.ToString().c_str());
+    return -WSAECONNRESET;
+  }
+
+  if (error == WSAESHUTDOWN) {
+    LOG("Connection shutdown from %s", m_serverAddress.ToString().c_str());
+    return -WSAESHUTDOWN;
+  }
+
+  if (error != NO_ERROR) {
+    ReportSocketError("TCPSocket::Receive");
+    return -error;
+  }
   return bytesReceivedCount;
 }

@@ -57,6 +57,11 @@ UDPSocket::Receive(void* inBuffer,
     return -WSAECONNRESET;
   }
 
+  if (error == WSAESHUTDOWN) {
+    LOG("Connection shutdown from %s", outFromAddress.ToString().c_str());
+    return -WSAESHUTDOWN;
+  }
+
   ReportSocketError("UDPSocket::Receive");
   return -error;
 }

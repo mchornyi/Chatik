@@ -12,14 +12,7 @@ public:
   {
   }
 
-  virtual ~BaseSocket()
-  {
-#if _WIN32
-    closesocket(mSocket);
-#else
-    close(mSocket);
-#endif
-  }
+	virtual ~BaseSocket();
 
   SOCKET GetSocket() const { return mSocket; }
 
@@ -83,7 +76,7 @@ public:
     return nullptr;
   }
 
-	virtual int Connect(const SocketAddress& inAddress) const { return -1; }
+	virtual int Connect(const SocketAddress& inAddress) { return -1; }
 
 protected:
   SOCKET mSocket = INVALID_SOCKET;

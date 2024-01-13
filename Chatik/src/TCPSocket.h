@@ -22,7 +22,7 @@ public:
 
   ~TCPSocket();
 
-  int Connect(const SocketAddress& inAddress) const override;
+  int Connect(const SocketAddress& inAddress) override;
   virtual int Listen(int inBackLog = 32) const override;
   virtual BaseSocket* Accept(SocketAddress& outFromAddress) const override;
 
@@ -49,6 +49,9 @@ private:
 
   int Send(const void* inData, size_t inDataSize) const;
   int Receive(void* inBuffer, size_t inMaxLen) const;
+
+private:
+	SocketAddress m_serverAddress;
 };
 
 } // namespace Chatik

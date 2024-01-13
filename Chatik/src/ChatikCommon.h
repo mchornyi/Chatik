@@ -25,7 +25,9 @@ const int NO_ERROR = 0;
 const int INVALID_SOCKET = -1;
 const int WSAECONNRESET = ECONNRESET;
 const int WSAEWOULDBLOCK = EAGAIN;
+const int WSAESHUTDOWN = ESHUTDOWN;
 const int SOCKET_ERROR = -1;
+const int SD_BOTH = SHUT_RDWR;
 #endif
 
 #include <cassert>
