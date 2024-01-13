@@ -103,7 +103,7 @@ Host::StopListening()
     return false;
   }
 
-  if (mUseTCP) {
+  if (mUseTCP && !mIsServer) {
     shutdown(mSocket->GetSocket(), SD_BOTH);
 
     const int errorNum = GetLastSocketError();
