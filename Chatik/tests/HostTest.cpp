@@ -149,18 +149,18 @@ TEST_CASE("HostClientConnectToServerTest::TCP", "[tcp]")
 
   Chatik::Host hostClient(false, true);
 
-  CHECK(true == hostClient.IsValid());
+  REQUIRE(true == hostClient.IsValid());
 
   const Chatik::SocketAddress serverAddress(
     Chatik::SocketUtil::CreateIPv4FromString(kServerAddress));
 
-  CHECK(true == hostClient.Connect(serverAddress));
+  REQUIRE(true == hostClient.Connect(serverAddress));
 
   WAIT_FOR(hostServer.GetClientCount() > 0, 200);
-  CHECK(1 == hostServer.GetClientCount());
+  REQUIRE(1 == hostServer.GetClientCount());
 }
 
-TEST_CASE("HostServertSendDataToClientTest::TCP", "[tcp][.]")
+TEST_CASE("HostServertSendDataToClientTest::TCP", "tcp")
 {
   char actualData[100] = {};
 
@@ -175,7 +175,7 @@ TEST_CASE("HostServertSendDataToClientTest::TCP", "[tcp][.]")
     };
 
   Chatik::Host hostServer(true, true);
-  hostServer.StartListen();
+  REQUIRE(true == hostServer.StartListen());
 
   Chatik::Host hostClient(false, true);
   hostClient.SetOnDataReceivedCallback(onClientDataReceivedCallback);
@@ -183,9 +183,11 @@ TEST_CASE("HostServertSendDataToClientTest::TCP", "[tcp][.]")
   const Chatik::SocketAddress serverAddress(
     Chatik::SocketUtil::CreateIPv4FromString(kServerAddress));
 
-  const int res = hostClient.Connect(serverAddress);
+	REQUIRE(true == hostClient.Connect(serverAddress));
 
   WAIT_FOR(hostServer.GetClientCount() > 0, 200);
+
+  REQUIRE(1 == hostServer.GetClientCount());
 
   hostClient.StartListen();
 
@@ -198,9 +200,9 @@ TEST_CASE("HostServertSendDataToClientTest::TCP", "[tcp][.]")
   const int sentDataLen =
     hostServer.SendData(expectedData, sizeof(expectedData), clientAddress);
 
-  CHECK(sizeof(expectedData) == sentDataLen);
+  REQUIRE(sizeof(expectedData) == sentDataLen);
 
   WAIT_FOR(onClientDataArrivedTrigger.load(), 200);
 
-  CHECK(0 == strcmp(expectedData, actualData));
+  REQUIRE(0 == strcmp(expectedData, actualData));
 }
