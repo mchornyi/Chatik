@@ -131,8 +131,8 @@ bool
 Host::StopListening()
 {
   if (!mIsListening.load(std::memory_order::relaxed)) {
-		if (mListenThread.joinable())
-			mListenThread.join();
+    if (mListenThread.joinable())
+      mListenThread.join();
     return false;
   }
 
@@ -182,23 +182,28 @@ Host::SendData(const char* data,
   if (!mUseTCP) {
     return mSocket->Send(data, dataLen, toAddress);
   } else {
-    int bytesSentCount = 0;
-    for (const auto& socket : mClientSockets) {
-      if (socket->GetSocket() == INVALID_SOCKET) {
-        continue;
-      }
-
-      bytesSentCount += socket->Send(data, dataLen, toAddress);
-
-      if (bytesSentCount < 0) {
-        const int errorNum = GetLastSocketError();
-        if (errorNum != WSAEWOULDBLOCK && errorNum != EAGAIN) {
-          ReportSocketError("Host::SendData");
+    if (mIsServer) {
+      int bytesSentCount = 0;
+      for (const auto& socket : mClientSockets) {
+        if (socket->GetSocket() == INVALID_SOCKET) {
+          continue;
         }
-        return -errorNum;
+
+        bytesSentCount += socket->Send(data, dataLen, toAddress);
+
+        if (bytesSentCount < 0) {
+          const int errorNum = GetLastSocketError();
+          if (errorNum != WSAEWOULDBLOCK && errorNum != EAGAIN) {
+            ReportSocketError("Host::SendData");
+          }
+          return -errorNum;
+        }
       }
+
+      return bytesSentCount;
+    } else {
+      return mSocket->Send(data, dataLen, toAddress);
     }
-    return bytesSentCount;
   }
 }
 
