@@ -1,17 +1,15 @@
 #include "../src/SocketUtil.h"
 #include "../src/UDPSocket.h"
-#include "UnitTest++/UnitTest++.h"
+#include "catch2/catch_test_macros.hpp"
 
 using namespace Chatik;
 
-SUITE(SocketCreationTest)
-{
-  TEST(CreateUDPSocketTest)
+  TEST_CASE("CreateUDPSocketTest")
   {
     BaseSocket* s = UDPSocket::CreateUDPSocket(INET);
-    REQUIRE CHECK(s != nullptr);
+    REQUIRE(s != nullptr);
 
-    CHECK_EQUAL(true, s->IsValid());
+    CHECK(true == s->IsValid());
 
     int res = -1;
     int iSocketType = 0;
@@ -48,19 +46,19 @@ SUITE(SocketCreationTest)
     }
 #endif
 
-    REQUIRE CHECK_EQUAL(0, res);
-    CHECK_EQUAL(SOCK_DGRAM, iSocketType);
-    CHECK_EQUAL(IPPROTO_UDP, iProtocol);
+    REQUIRE(0 == res);
+    CHECK(SOCK_DGRAM == iSocketType);
+    CHECK(IPPROTO_UDP == iProtocol);
 
     delete s;
   }
 
-  TEST(CreateTCPSocketTest)
+	TEST_CASE("CreateTCPSocketTest")
   {
     BaseSocket* s = TCPSocket::CreateTCPSocket(INET);
-    REQUIRE CHECK(s != nullptr);
+    REQUIRE(s != nullptr);
 
-    CHECK_EQUAL(true, s->IsValid());
+    CHECK(true == s->IsValid());
 
     int res = -1;
     int iSocketType = 0;
@@ -97,24 +95,23 @@ SUITE(SocketCreationTest)
     }
 #endif
 
-    REQUIRE CHECK_EQUAL(0, res);
-    CHECK_EQUAL(SOCK_STREAM, iSocketType);
-    CHECK_EQUAL(IPPROTO_TCP, iProtocol);
+    REQUIRE(0 == res);
+    CHECK(SOCK_STREAM == iSocketType);
+    CHECK(IPPROTO_TCP == iProtocol);
 
     delete s;
   }
 
-  TEST(SetNonBlockingUDPSocketTest)
+	TEST_CASE("SetNonBlockingUDPSocketTest")
   {
     BaseSocket* s = UDPSocket::CreateUDPSocket(INET);
-    REQUIRE CHECK(s != nullptr);
+    REQUIRE(s != nullptr);
 
     int res = s->SetNonBlockingMode(true);
-    CHECK_EQUAL(NO_ERROR, res);
+    CHECK(NO_ERROR == res);
 
     res = s->SetNonBlockingMode(false);
-    CHECK_EQUAL(NO_ERROR, res);
+    CHECK(NO_ERROR == res);
 
     delete s;
   }
-}
