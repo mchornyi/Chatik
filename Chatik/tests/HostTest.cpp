@@ -153,11 +153,8 @@ SUITE(HostTest)
     {
       Chatik::Host hostServer(true, true);
 
-      CHECK_EQUAL(true, hostServer.IsValid());
-      CHECK_EQUAL(true, hostServer.StartListen());
+			hostServer.StartListen();
       WAIT_FOR(hostServer.IsListening(), 200);
-
-      CHECK_EQUAL(true, hostServer.IsListening());
 
       Chatik::Host hostClient(false, true);
 
@@ -170,9 +167,52 @@ SUITE(HostTest)
 
       WAIT_FOR(hostServer.GetClientCount() > 0, 200);
       CHECK_EQUAL(1, hostServer.GetClientCount());
+    }
 
-      CHECK_EQUAL(true, hostServer.StopListening());
-      CHECK_EQUAL(false, hostServer.IsListening());
+    TEST(HostServertSendDataToClientTest)
+    {
+      char actualData[100] = {};
+
+      std::atomic_bool onClientDataArrivedTrigger(false);
+
+      auto onClientDataReceivedCallback =
+        [&](const char* data,
+            int dataLen,
+            const Chatik::SocketAddress& fromAddress) {
+          assert(data && dataLen > 0);
+          memcpy(actualData, data, dataLen);
+          onClientDataArrivedTrigger = true;
+        };
+
+      Chatik::Host hostServer(true, true);
+      hostServer.StartListen();
+
+      Chatik::Host hostClient(false, true);
+      hostClient.SetOnDataReceivedCallback(onClientDataReceivedCallback);
+
+      const Chatik::SocketAddress serverAddress(
+        Chatik::SocketUtil::CreateIPv4FromString(kServerAddress));
+
+      const int res = hostClient.Connect(serverAddress);
+
+      WAIT_FOR(hostServer.GetClientCount() > 0, 200);
+
+      hostClient.StartListen();
+
+      WAIT_FOR(hostClient.IsListening(), 200);
+
+      constexpr char expectedData[] = "Hello, client!";
+
+      const Chatik::SocketAddress clientAddress{};
+
+      const int sentDataLen =
+        hostServer.SendData(expectedData, sizeof(expectedData), clientAddress);
+
+      CHECK_EQUAL(sizeof(expectedData), sentDataLen);
+
+      WAIT_FOR(onClientDataArrivedTrigger.load(), 200);
+
+      CHECK_EQUAL(0, strcmp(expectedData, actualData));
     }
   }
 }

@@ -36,7 +36,8 @@ Host::~Host()
 bool
 Host::StartListen()
 {
-  if (!mUseTCP) {
+  if (!mUseTCP) { // UDP
+                  // Server/Client listens for incoming data
     mListenThread = std::thread([this]() {
       mIsListening.store(true, std::memory_order::relaxed);
       while (mIsListening.load(std::memory_order::relaxed)) {
@@ -64,33 +65,63 @@ Host::StartListen()
     });
 
     return true;
-  } else {
-    mListenThread = std::thread([this]() {
-      mIsListening.store(true, std::memory_order::relaxed);
-      while (mIsListening.load(std::memory_order::relaxed)) {
-        if (mSocket->Listen() == NO_ERROR) {
-          SocketAddress outFromAddress;
-          if (BaseSocket* newSocket = mSocket->Accept(outFromAddress)) {
-            std::cout << "New connection from " << outFromAddress.ToString()
-                      << '\n';
-            mClientSockets.push_back(newSocket);
-          } else {
-            const int errorNum = GetLastSocketError();
-            if (errorNum != WSAEWOULDBLOCK && errorNum != EAGAIN) {
-              std::cout << "Socket error: " << GetLastSocketError() << '\n';
-              mIsListening.store(false, std::memory_order::relaxed);
-              break;
+  } else { // TCP Server
+    if (mIsServer) {
+      // Server listens for incoming connection
+      mListenThread = std::thread([this]() {
+        mIsListening.store(true, std::memory_order::relaxed);
+        while (mIsListening.load(std::memory_order::relaxed)) {
+          if (mSocket->Listen() == NO_ERROR) {
+            SocketAddress outFromAddress;
+            if (BaseSocket* newSocket = mSocket->Accept(outFromAddress)) {
+              std::cout << "New connection from " << outFromAddress.ToString()
+                        << '\n';
+              mClientSockets.push_back(newSocket);
+            } else {
+              const int errorNum = GetLastSocketError();
+              if (errorNum != WSAEWOULDBLOCK && errorNum != EAGAIN) {
+                std::cout << "Socket error: " << GetLastSocketError() << '\n';
+                mIsListening.store(false, std::memory_order::relaxed);
+                break;
+              }
             }
+          } else {
+            std::cout << "Socket error: " << GetLastSocketError() << '\n';
+            mIsListening.store(false, std::memory_order::relaxed);
+            break;
           }
-        } else {
-          std::cout << "Socket error: " << GetLastSocketError() << '\n';
-          mIsListening.store(false, std::memory_order::relaxed);
-          break;
+          std::this_thread::sleep_for(std::chrono::milliseconds(10));
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
-      }
-    });
-    return true;
+      });
+      return true;
+    } else { // TCP Client
+      // Client listens for incoming data
+      mListenThread = std::thread([this]() {
+        mIsListening.store(true, std::memory_order::relaxed);
+        while (mIsListening.load(std::memory_order::relaxed)) {
+
+          SocketAddress fromAddress{};
+          char buffer[1500];
+          const int readByteCount =
+            mSocket->Receive(buffer, sizeof(buffer), fromAddress);
+
+          if (readByteCount <= SOCKET_ERROR) {
+            if (readByteCount != -WSAESHUTDOWN) {
+              std::cout << "Socket error: " << GetLastSocketError() << '\n';
+            }
+
+            mIsListening.store(false, std::memory_order::relaxed);
+            break;
+          }
+
+          if (readByteCount > 0) {
+            OnDataReceived(fromAddress, buffer, readByteCount);
+          }
+
+          std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        }
+      });
+    }
   }
 
   return false;
@@ -100,6 +131,8 @@ bool
 Host::StopListening()
 {
   if (!mIsListening.load(std::memory_order::relaxed)) {
+		if (mListenThread.joinable())
+			mListenThread.join();
     return false;
   }
 
@@ -146,7 +179,27 @@ Host::SendData(const char* data,
                int dataLen,
                const SocketAddress& toAddress) const
 {
-  return mSocket->Send(data, dataLen, toAddress);
+  if (!mUseTCP) {
+    return mSocket->Send(data, dataLen, toAddress);
+  } else {
+    int bytesSentCount = 0;
+    for (const auto& socket : mClientSockets) {
+      if (socket->GetSocket() == INVALID_SOCKET) {
+        continue;
+      }
+
+      bytesSentCount += socket->Send(data, dataLen, toAddress);
+
+      if (bytesSentCount < 0) {
+        const int errorNum = GetLastSocketError();
+        if (errorNum != WSAEWOULDBLOCK && errorNum != EAGAIN) {
+          ReportSocketError("Host::SendData");
+        }
+        return -errorNum;
+      }
+    }
+    return bytesSentCount;
+  }
 }
 
 bool
