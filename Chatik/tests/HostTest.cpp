@@ -140,7 +140,7 @@ TEST_CASE("HostServerStartStopTest::TCP", "[tcp]")
   CHECK(false == host.IsListening());
 }
 
-TEST_CASE("HostClientConnectToServerTest::TCP", "[tcp]")
+TEST_CASE("HostClientConnectToServerTest::TCP", "[.tcp]")
 {
   Chatik::Host hostServer(true, true);
 
@@ -160,7 +160,7 @@ TEST_CASE("HostClientConnectToServerTest::TCP", "[tcp]")
   REQUIRE(1 == hostServer.GetClientCount());
 }
 
-TEST_CASE("HostServertSendDataToClientTest::TCP", "tcp")
+TEST_CASE("HostServertSendDataToClientTest::TCP", "[.tcp]")
 {
   char actualData[100] = {};
 

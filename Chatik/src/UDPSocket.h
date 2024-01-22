@@ -20,7 +20,7 @@ public:
     }
   }
 
-  ~UDPSocket();
+  ~UDPSocket() override;
 
   virtual int Send(const void* inData,
                    int inDataSize,
@@ -28,7 +28,7 @@ public:
 
   virtual int Receive(void* inBuffer,
                   int inMaxLen,
-                  SocketAddress& outFromAddress) const override;
+                  SocketAddress& outFromAddress) override;
 
   /*
   int SendTo( const MemoryOutputStream& inMOS, const SocketAddress& inToAddress

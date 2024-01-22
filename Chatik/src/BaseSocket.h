@@ -64,7 +64,7 @@ public:
 
   virtual int Receive(void* inBuffer,
                       int inMaxLen,
-                      SocketAddress& outFromAddress) const
+                      SocketAddress& outFromAddress)
   {
     return -1;
   }
@@ -78,7 +78,13 @@ public:
 
 	virtual int Connect(const SocketAddress& inAddress) { return -1; }
 
+	bool ShutDown();
+
+	bool GetWasShutdown() const { return mWasShutDown; }
+
 protected:
   SOCKET mSocket = INVALID_SOCKET;
+	bool mIsShutDown = false;
+	bool mWasShutDown = false;
 };
 }

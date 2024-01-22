@@ -27,3 +27,26 @@ BaseSocket::Bind(const SocketAddress& inToAddress) const
 
   return NO_ERROR;
 }
+
+bool
+BaseSocket::ShutDown()
+{
+  assert(!mIsShutDown);
+
+  if (mIsShutDown) {
+    return true;
+  }
+
+  shutdown(GetSocket(), SD_SEND);
+
+  const int errorNum = GetLastSocketError();
+  assert(errorNum == NO_ERROR);
+  const bool res = (errorNum == NO_ERROR);
+  if (errorNum != NO_ERROR) {
+    ReportSocketError("BaseSocket::ShutDown");
+  }
+
+  mIsShutDown = res;
+
+  return mIsShutDown;
+}

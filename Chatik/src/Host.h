@@ -24,6 +24,8 @@ public:
 
   bool StopListening();
 
+	bool ShutDown();
+
   bool IsValid() const;
 
   bool IsListening() const
@@ -48,11 +50,17 @@ private:
                       const char* data,
                       int readByteCount) const;
 
+	void ListenForNewConnections();
+	void ListenForIncomingDataFromClients();
+	void ListenForIncomingData();
+
 private:
   bool mIsServer = false;
   bool mUseTCP = false;
+	bool mIsShutDown = false;
   BaseSocket* mSocket;
   std::thread mListenThread;
+	std::thread mListenThreadClients;
   std::atomic_bool mIsListening = false;
   OnDataReceiveCallback mOnDataReceivedCallback;
   std::vector<BaseSocket*> mClientSockets;

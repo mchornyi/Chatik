@@ -64,7 +64,7 @@ TCPSocket::Send(const void* inData, size_t inDataSize) const
 }
 
 int
-TCPSocket::Receive(void* inBuffer, size_t inMaxLen) const
+TCPSocket::Receive(void* inBuffer, size_t inMaxLen)
 {
   const int bytesReceivedCount =
     recv(mSocket, static_cast<char*>(inBuffer), static_cast<int>(inMaxLen), 0);
@@ -80,11 +80,13 @@ TCPSocket::Receive(void* inBuffer, size_t inMaxLen) const
     // this is the ICMP message being sent back saying the port on that computer
     // is closed
     LOG("Connection reset from %s", m_serverAddress.ToString().c_str());
+		mWasShutDown = true;
     return -WSAECONNRESET;
   }
 
   if (error == WSAESHUTDOWN) {
     LOG("Connection shutdown from %s", m_serverAddress.ToString().c_str());
+		mWasShutDown = true;
     return -WSAESHUTDOWN;
   }
 

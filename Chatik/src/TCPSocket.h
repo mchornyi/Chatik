@@ -20,7 +20,7 @@ public:
     }
   }
 
-  ~TCPSocket();
+  ~TCPSocket() override;
 
   int Connect(const SocketAddress& inAddress) override;
   virtual int Listen(int inBackLog = 32) const override;
@@ -35,7 +35,7 @@ public:
 
   virtual int Receive(void* inBuffer,
                       int inMaxLen,
-                      SocketAddress& outFromAddress) const override
+                      SocketAddress& outFromAddress) override
   {
     return Receive(inBuffer, inMaxLen);
   }
@@ -48,7 +48,7 @@ private:
   }
 
   int Send(const void* inData, size_t inDataSize) const;
-  int Receive(void* inBuffer, size_t inMaxLen) const;
+  int Receive(void* inBuffer, size_t inMaxLen);
 
 private:
 	SocketAddress m_serverAddress;

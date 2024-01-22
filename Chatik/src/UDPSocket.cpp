@@ -28,9 +28,9 @@ UDPSocket::Send(const void* inData,
 int
 UDPSocket::Receive(void* inBuffer,
                    int inMaxLen,
-                   SocketAddress& outFromAddress) const
+                   SocketAddress& outFromAddress)
 {
-  socklen_t fromLength = Chatik::SocketAddress::GetSize();
+  socklen_t fromLength = SocketAddress::GetSize();
 
   const int readByteCount = recvfrom(mSocket,
                                      static_cast<char*>(inBuffer),
@@ -54,11 +54,13 @@ UDPSocket::Receive(void* inBuffer,
     // this is the ICMP message being sent back saying the port on that computer
     // is closed
     LOG("Connection reset from %s", outFromAddress.ToString().c_str());
+		mWasShutDown = true;
     return -WSAECONNRESET;
   }
 
   if (error == WSAESHUTDOWN) {
     LOG("Connection shutdown from %s", outFromAddress.ToString().c_str());
+		mWasShutDown = true;
     return -WSAESHUTDOWN;
   }
 

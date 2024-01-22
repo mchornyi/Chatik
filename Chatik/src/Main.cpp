@@ -25,7 +25,7 @@ int main(int argc, char* argv[]) {
 	// your setup ...
 	Chatik::SocketUtil::StaticInit();
 
-	cout << "I'm Chatik." << endl;
+	//cout << "I'm Chatik." << endl;
 
 	int result = Catch::Session().run(argc, argv);
 
