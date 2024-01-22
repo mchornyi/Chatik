@@ -4,7 +4,7 @@
 
 using namespace Chatik;
 
-  TEST_CASE("CreateUDPSocketTest")
+  TEST_CASE("CreateUDPSocketTest", "[udp]")
   {
     BaseSocket* s = UDPSocket::CreateUDPSocket(INET);
     REQUIRE(s != nullptr);
@@ -53,7 +53,7 @@ using namespace Chatik;
     delete s;
   }
 
-	TEST_CASE("CreateTCPSocketTest")
+	TEST_CASE("CreateTCPSocketTest", "[tcp]")
   {
     BaseSocket* s = TCPSocket::CreateTCPSocket(INET);
     REQUIRE(s != nullptr);
@@ -70,7 +70,7 @@ using namespace Chatik;
     res = getsockopt(
       s->GetSocket(), SOL_SOCKET, SO_PROTOCOL_INFO, (char*)&socket_info, &size);
     if (res != 0) {
-      ReportSocketError("CreateUDPSocketTest");
+      ReportSocketError("CreateTCPSocketTest");
     }
 
     iSocketType = socket_info.iSocketType;
