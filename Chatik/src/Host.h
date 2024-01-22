@@ -22,8 +22,6 @@ public:
 
   bool StartListen();
 
-  bool StopListening();
-
 	bool ShutDown();
 
   bool IsValid() const;
@@ -46,6 +44,8 @@ public:
   bool Connect(const SocketAddress& socketAddress) const;
 
 private:
+	bool StopListening();
+
   void OnDataReceived(const SocketAddress& fromAddress,
                       const char* data,
                       int readByteCount) const;

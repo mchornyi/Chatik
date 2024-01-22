@@ -22,7 +22,9 @@ Host::Host(bool isServer, bool useTCP /*=false*/)
 
 Host::~Host()
 {
-  StopListening();
+  if (!mIsShutDown) {
+    ShutDown();
+  }
 
   for (auto& socket : mClientSockets) {
     delete socket;
@@ -61,37 +63,18 @@ Host::StopListening()
   if (!mIsListening.load(std::memory_order::relaxed)) {
     if (mListenThread.joinable())
       mListenThread.join();
+    if (mListenThreadClients.joinable())
+      mListenThreadClients.join();
     return false;
   }
 
-  if (mUseTCP && !mIsServer) {
-    shutdown(mSocket->GetSocket(), SD_BOTH);
-
-    const int errorNum = GetLastSocketError();
-    if (errorNum != NO_ERROR) {
-      ReportSocketError("Host::StopListening");
-    }
-    assert(errorNum == NO_ERROR);
-  }
-
-  for (const auto& socket : mClientSockets) {
-    if (mUseTCP) {
-      shutdown(socket->GetSocket(), SD_BOTH);
-
-      const int errorNum = GetLastSocketError();
-      if (errorNum != NO_ERROR) {
-        ReportSocketError("Host::StopListening");
-      }
-      assert(errorNum == NO_ERROR);
-    }
-  }
-
-  if (mIsServer || !mUseTCP) {
-    mIsListening.store(false, std::memory_order::relaxed);
-  }
+  mIsListening.store(false, std::memory_order::relaxed);
 
   if (mListenThread.joinable())
     mListenThread.join();
+
+  if (mListenThreadClients.joinable())
+    mListenThreadClients.join();
 
   return true;
 }
@@ -99,11 +82,7 @@ Host::StopListening()
 bool
 Host::ShutDown()
 {
-  assert(!mIsShutDown && !mUseTCP);
-
-  if (!mUseTCP) {
-    return false;
-  }
+  assert(!mIsShutDown);
 
   if (mIsShutDown) {
     return true;
@@ -111,7 +90,9 @@ Host::ShutDown()
 
   bool res = true;
 
-  res &= mSocket->ShutDown();
+  if (!mUseTCP || mIsServer) {
+    res &= StopListening();
+  }
 
   for (const auto& socket : mClientSockets) {
     res &= socket->ShutDown();
@@ -181,8 +162,8 @@ Host::OnDataReceived(const SocketAddress& fromAddress,
 {
   assert(data && readByteCount > 0);
 
-  // std::cout << "Received " << readByteCount << " bytes from "
-  //           << fromAddress.ToString() << '\n';
+  // std::cout << "Received " << readByteCount << " bytes from " <<
+  // fromAddress.ToString() << '\n';
 
   mOnDataReceivedCallback(data, readByteCount, fromAddress);
 }
@@ -241,7 +222,7 @@ Host::ListenForIncomingDataFromClients()
         }
       }
 
-			// delete socket that were shutdown
+      // delete socket that were shutdown
       const auto removeFromIt = std::remove_if(mClientSockets.begin(),
                                                mClientSockets.end(),
                                                [](const BaseSocket* socket) {
