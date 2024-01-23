@@ -7,7 +7,7 @@ const char* kServerAddress = "127.0.0.1:5005";
 const char* kClientAddress = "127.0.0.1:5006";
 constexpr int kWaitForActionFromHost = 2000;
 
-TEST_CASE("HostServerStartStopTest::UDP", "[udp]")
+TEST_CASE("HostServerStartStopTest::UDP", "[.udp]")
 {
   Chatik::Host hostServer(true);
 
@@ -22,7 +22,7 @@ TEST_CASE("HostServerStartStopTest::UDP", "[udp]")
   CHECK(false == hostServer.IsListening());
 }
 
-TEST_CASE("HostClientStartStopTest::UDP", "[udp]")
+TEST_CASE("HostClientStartStopTest::UDP", "[.udp]")
 {
   Chatik::Host hostClient(false);
 
@@ -37,7 +37,7 @@ TEST_CASE("HostClientStartStopTest::UDP", "[udp]")
   CHECK(false == hostClient.IsListening());
 }
 
-TEST_CASE("HostClientSendDataToServerTest::UDP", "[udp]")
+TEST_CASE("HostClientSendDataToServerTest::UDP", "[.udp]")
 {
   char actualData[100] = {};
 
@@ -77,7 +77,7 @@ TEST_CASE("HostClientSendDataToServerTest::UDP", "[udp]")
   CHECK(0 == strcmp(expectedData, actualData));
 }
 
-TEST_CASE("HostServerSendDataBackToClientTest::UDP", "[udp]")
+TEST_CASE("HostServerSendDataBackToClientTest::UDP", "[.udp]")
 {
   char actualData[100] = {};
 
@@ -152,7 +152,7 @@ TEST_CASE("HostServerStartStopTest::TCP", "[.tcp]")
   CHECK(false == hostServer.IsListening());
 }
 
-TEST_CASE("HostClientConnectToServerTest::TCP", "[.tcp]")
+TEST_CASE("HostClientConnectToServerAndShutDownTest::TCP", "[tcp]")
 {
   Chatik::Host hostServer(true, true);
 
@@ -167,9 +167,20 @@ TEST_CASE("HostClientConnectToServerTest::TCP", "[.tcp]")
     Chatik::SocketUtil::CreateIPv4FromString(kServerAddress));
 
   REQUIRE(true == hostClient.Connect(serverAddress));
+	REQUIRE(true == hostClient.StartListen());
+	WAIT_FOR(hostClient.IsListening(), kWaitForActionFromHost);
+	REQUIRE(true == hostClient.IsListening());
 
   WAIT_FOR(hostServer.GetClientCount() > 0, kWaitForActionFromHost);
   REQUIRE(1 == hostServer.GetClientCount());
+
+	REQUIRE(true == hostClient.ShutDown());
+
+	WAIT_FOR(false == hostClient.IsListening(), kWaitForActionFromHost);
+	REQUIRE(false == hostClient.IsListening());
+
+	WAIT_FOR(hostServer.GetClientCount() == 0, kWaitForActionFromHost);
+	REQUIRE(0 == hostServer.GetClientCount());
 }
 
 TEST_CASE("HostServertSendDataToClientTest::TCP", "[.tcp]")

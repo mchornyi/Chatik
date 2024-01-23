@@ -1,5 +1,7 @@
 #include "Host.h"
 
+#include <cassert>
+
 #include "BaseSocket.h"
 #include "TCPSocket.h"
 #include "UDPSocket.h"
@@ -26,10 +28,18 @@ Host::~Host()
     ShutDown();
   }
 
+	StopListening();
+
   for (auto& socket : mClientSockets) {
     delete socket;
     socket = nullptr;
   }
+
+	for (auto& socket : mWasShutDownClientSockets)
+	{
+		delete socket;
+		socket = nullptr;
+	}
 
   delete mSocket;
   mSocket = nullptr;
@@ -92,6 +102,10 @@ Host::ShutDown()
 
   if (!mUseTCP || mIsServer) {
     res &= StopListening();
+  }
+
+  if (mUseTCP && !mIsServer) {
+    mSocket->ShutDown();
   }
 
   for (const auto& socket : mClientSockets) {
@@ -176,10 +190,14 @@ Host::ListenForNewConnections()
     while (mIsListening.load(std::memory_order::relaxed)) {
       if (mSocket->Listen() == NO_ERROR) {
         SocketAddress outFromAddress;
+
         if (BaseSocket* newSocket = mSocket->Accept(outFromAddress)) {
           std::cout << "New connection from " << outFromAddress.ToString()
                     << '\n';
-          mClientSockets.push_back(newSocket);
+					{
+						SpinlockGuard lockGuard(mSpinLock);
+						mClientSockets.push_back(newSocket);
+					}
         } else {
           const int errorNum = GetLastSocketError();
           if (errorNum != WSAEWOULDBLOCK && errorNum != EAGAIN) {
@@ -204,15 +222,16 @@ Host::ListenForIncomingDataFromClients()
   mListenThreadClients = std::thread([this]() {
     mIsListening.store(true, std::memory_order::relaxed);
     while (mIsListening.load(std::memory_order::relaxed)) {
-
+			SpinlockGuard lockGuard(mSpinLock);
       for (const auto& cSocket : mClientSockets) {
         SocketAddress fromAddress{};
         char buffer[1500];
+
         const int readByteCount =
           cSocket->Receive(buffer, sizeof(buffer), fromAddress);
 
         if (readByteCount <= SOCKET_ERROR) {
-          if (readByteCount != -WSAESHUTDOWN) {
+          if (readByteCount != -WSAESHUTDOWN && readByteCount != -SOCKET_CLOSED) {
             std::cout << "Socket error: " << GetLastSocketError() << '\n';
           }
         }
@@ -225,9 +244,10 @@ Host::ListenForIncomingDataFromClients()
       // delete socket that were shutdown
       const auto removeFromIt = std::remove_if(mClientSockets.begin(),
                                                mClientSockets.end(),
-                                               [](const BaseSocket* socket) {
+                                               [&](BaseSocket* socket) {
                                                  if (socket->GetWasShutdown()) {
-                                                   delete socket;
+																									 socket->ShutDown();
+																									 mWasShutDownClientSockets.push_back(socket);
                                                    return true;
                                                  }
                                                  return false;
@@ -248,11 +268,12 @@ Host::ListenForIncomingData()
 
       SocketAddress fromAddress{};
       char buffer[1500];
+
       const int readByteCount =
         mSocket->Receive(buffer, sizeof(buffer), fromAddress);
 
       if (readByteCount <= SOCKET_ERROR) {
-        if (readByteCount != -WSAESHUTDOWN) {
+        if (readByteCount != -WSAESHUTDOWN && readByteCount != -SOCKET_CLOSED) {
           std::cout << "Socket error: " << GetLastSocketError() << '\n';
         }
 

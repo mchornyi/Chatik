@@ -1,5 +1,7 @@
 #include "BaseSocket.h"
 
+#include <cassert>
+
 #include "SocketAddress.h"
 
 using namespace Chatik;
@@ -40,9 +42,8 @@ BaseSocket::ShutDown()
   shutdown(GetSocket(), SD_SEND);
 
   const int errorNum = GetLastSocketError();
-  assert(errorNum == NO_ERROR);
   const bool res = (errorNum == NO_ERROR);
-  if (errorNum != NO_ERROR) {
+  if (!res) {
     ReportSocketError("BaseSocket::ShutDown");
   }
 

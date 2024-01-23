@@ -94,5 +94,12 @@ TCPSocket::Receive(void* inBuffer, size_t inMaxLen)
     ReportSocketError("TCPSocket::Receive");
     return -error;
   }
+
+  if (bytesReceivedCount == 0)
+  {
+		mWasShutDown = true;
+		return -SOCKET_CLOSED;
+  }
+
   return bytesReceivedCount;
 }

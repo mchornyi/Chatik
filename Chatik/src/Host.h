@@ -64,5 +64,7 @@ private:
   std::atomic_bool mIsListening = false;
   OnDataReceiveCallback mOnDataReceivedCallback;
   std::vector<BaseSocket*> mClientSockets;
+	std::vector<BaseSocket*> mWasShutDownClientSockets;
+	Spinlock mSpinLock;
 };
 } // namespace Chatik
