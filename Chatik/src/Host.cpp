@@ -195,12 +195,11 @@ void Host::ListenForNewConnections()
         mIsListening.store(true, std::memory_order::relaxed);
         while (mIsListening.load(std::memory_order::relaxed))
         {
-            const int errorNum = mSocket->Listen();
-            if (errorNum == NO_ERROR)
+            if (mSocket->Listen() == NO_ERROR)
             {
                 SocketAddress outFromAddress;
-
-                if (BaseSocket *newSocket = mSocket->Accept(outFromAddress))
+				int acceptErrorNum = NO_ERROR;
+                if (BaseSocket *newSocket = mSocket->Accept(outFromAddress, acceptErrorNum))
                 {
                     std::cout << "New connection from " << outFromAddress.ToString() << '\n';
                     {
@@ -210,8 +209,7 @@ void Host::ListenForNewConnections()
                 }
                 else
                 {
-                    const int errorNum = GetLastSocketError(mSocket->GetSocketHandle());
-                    if (errorNum != WSAEWOULDBLOCK && errorNum != EAGAIN)
+                    if (acceptErrorNum != NO_ERROR && acceptErrorNum != WSAEWOULDBLOCK && acceptErrorNum != EAGAIN)
                     {
                         mIsListening.store(false, std::memory_order::relaxed);
                         break;
@@ -288,11 +286,6 @@ void Host::ListenForIncomingData()
 
             if (readByteCount <= SOCKET_ERROR)
             {
-                if (readByteCount != -WSAESHUTDOWN && readByteCount != -SOCKET_CLOSED)
-                {
-                    std::cout << "Socket error: " << readByteCount << '\n';
-                }
-
                 mIsListening.store(false, std::memory_order::relaxed);
                 break;
             }

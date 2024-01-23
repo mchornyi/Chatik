@@ -28,7 +28,7 @@ class TCPSocket : public BaseSocket
 
     int Connect(const SocketAddress &inAddress) override;
     virtual int Listen(int inBackLog = 32) const override;
-    virtual BaseSocket *Accept(SocketAddress &outFromAddress) const override;
+    virtual BaseSocket *Accept(SocketAddress &outFromAddress, int& errorNum) const override;
 
     virtual int Send(const void *inData, int inDataSize, const SocketAddress &inToAddress) const override
     {

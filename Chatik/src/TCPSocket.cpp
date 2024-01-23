@@ -34,18 +34,19 @@ int TCPSocket::Listen(int inBackLog) const
     return NO_ERROR;
 }
 
-BaseSocket *TCPSocket::Accept(SocketAddress &outFromAddress) const
+BaseSocket *TCPSocket::Accept(SocketAddress &outFromAddress, int &errorNum) const
 {
     socklen_t length = Chatik::SocketAddress::GetSize();
     const SOCKET newSocket = accept(mSocket, &outFromAddress.mSockAddr, &length);
 
     if (newSocket != INVALID_SOCKET)
     {
+        errorNum = NO_ERROR;
         return TCPSocketPtr(new TCPSocket(newSocket));
     }
     else
     {
-        const int errorNum = GetLastSocketError(mSocket);
+        errorNum = GetLastSocketError(mSocket);
 
         if (errorNum != NO_ERROR && errorNum != WSAEWOULDBLOCK && errorNum != EAGAIN)
         {
@@ -61,7 +62,7 @@ int TCPSocket::Send(const void *inData, size_t inDataSize) const
 
     if (bytesSentCount < 0)
     {
-		const int errorNum = GetLastSocketError(mSocket);
+        const int errorNum = GetLastSocketError(mSocket);
         ReportSocketError("TCPSocket::Send", errorNum);
         return errorNum;
     }

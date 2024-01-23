@@ -74,7 +74,7 @@ class BaseSocket
         return -1;
     }
 
-    virtual BaseSocket *Accept(SocketAddress &inFromAddress) const
+    virtual BaseSocket *Accept(SocketAddress &inFromAddress, int& errorNum) const
     {
         return nullptr;
     }
