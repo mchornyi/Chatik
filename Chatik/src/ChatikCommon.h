@@ -118,12 +118,18 @@ Log(const char* inFormat, ...)
 
 #pragma region ERROR
 inline int
-GetLastSocketError()
+GetLastSocketError(SOCKET sockfd = -1)
 {
 #if _WIN32
   return WSAGetLastError();
 #else
-  return errno;
+	if (sockfd == -1)
+		return errno;
+
+	int error = 0;
+	socklen_t errorLength = sizeof(error);
+	getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &error, &errorLength);
+  return error;
 #endif
 }
 
@@ -143,11 +149,11 @@ ReportSocketError(const char* inOperationDesc)
                 (LPTSTR)&lpMsgBuf,
                 0,
                 NULL);
-  LOG("Error %s: %d- %s", inOperationDesc, errorNum, lpMsgBuf);
+  LOG("Error %s: %d - %s", inOperationDesc, errorNum, lpMsgBuf);
 #else
   char msg[64];
   strerror_r(errorNum, msg, sizeof(msg));
-  LOG("Error %s: %d- %s", inOperationDesc, errorNum, strerror(errorNum));
+  LOG("Error %s: %d - %s", inOperationDesc, errorNum, strerror(errorNum));
 #endif
 }
 #pragma endregion ERROR

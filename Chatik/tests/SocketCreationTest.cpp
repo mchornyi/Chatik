@@ -19,7 +19,7 @@ using namespace Chatik;
     int size = sizeof(socket_info);
 
     res = getsockopt(
-      s->GetSocket(), SOL_SOCKET, SO_PROTOCOL_INFO, (char*)&socket_info, &size);
+      s->GetSocketHandle(), SOL_SOCKET, SO_PROTOCOL_INFO, (char*)&socket_info, &size);
     if (res != 0) {
       ReportSocketError("CreateUDPSocketTest");
     }
@@ -30,7 +30,7 @@ using namespace Chatik;
     {
       socklen_t size = sizeof(iSocketType);
       res = getsockopt(
-        s->GetSocket(), SOL_SOCKET, SO_TYPE, &iSocketType, &size);
+        s->GetSocketHandle(), SOL_SOCKET, SO_TYPE, &iSocketType, &size);
       if (res != 0) {
         ReportSocketError("CreateUDPSocketTest");
       }
@@ -39,7 +39,7 @@ using namespace Chatik;
     {
       socklen_t size = sizeof(iSocketType);
       res = getsockopt(
-        s->GetSocket(), SOL_SOCKET, SO_PROTOCOL, &iProtocol, &size);
+        s->GetSocketHandle(), SOL_SOCKET, SO_PROTOCOL, &iProtocol, &size);
       if (res != 0) {
         ReportSocketError("CreateUDPSocketTest");
       }
@@ -68,7 +68,7 @@ using namespace Chatik;
     int size = sizeof(socket_info);
 
     res = getsockopt(
-      s->GetSocket(), SOL_SOCKET, SO_PROTOCOL_INFO, (char*)&socket_info, &size);
+      s->GetSocketHandle(), SOL_SOCKET, SO_PROTOCOL_INFO, (char*)&socket_info, &size);
     if (res != 0) {
       ReportSocketError("CreateTCPSocketTest");
     }
@@ -79,7 +79,7 @@ using namespace Chatik;
     {
       socklen_t size = sizeof(iSocketType);
       res = getsockopt(
-        s->GetSocket(), SOL_SOCKET, SO_TYPE, &iSocketType, &size);
+        s->GetSocketHandle(), SOL_SOCKET, SO_TYPE, &iSocketType, &size);
       if (res != 0) {
         ReportSocketError("CreateTCPSocketTest");
       }
@@ -88,7 +88,7 @@ using namespace Chatik;
     {
       socklen_t size = sizeof(iSocketType);
       res = getsockopt(
-        s->GetSocket(), SOL_SOCKET, SO_PROTOCOL, &iProtocol, &size);
+        s->GetSocketHandle(), SOL_SOCKET, SO_PROTOCOL, &iProtocol, &size);
       if (res != 0) {
         ReportSocketError("CreateTCPSocketTest");
       }

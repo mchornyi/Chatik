@@ -133,14 +133,14 @@ Host::SendData(const char* data,
     if (mIsServer) {
       int bytesSentCount = 0;
       for (const auto& socket : mClientSockets) {
-        if (socket->GetSocket() == INVALID_SOCKET) {
+        if (socket->GetSocketHandle() == INVALID_SOCKET) {
           continue;
         }
 
         bytesSentCount += socket->Send(data, dataLen, toAddress);
 
         if (bytesSentCount < 0) {
-          const int errorNum = GetLastSocketError();
+          const int errorNum = GetLastSocketError(socket->GetSocketHandle());
           if (errorNum != WSAEWOULDBLOCK && errorNum != EAGAIN) {
             ReportSocketError("Host::SendData");
           }
@@ -199,15 +199,15 @@ Host::ListenForNewConnections()
 						mClientSockets.push_back(newSocket);
 					}
         } else {
-          const int errorNum = GetLastSocketError();
+          const int errorNum = GetLastSocketError(mSocket->GetSocketHandle());
           if (errorNum != WSAEWOULDBLOCK && errorNum != EAGAIN) {
-            std::cout << "Socket error: " << GetLastSocketError() << '\n';
+            std::cout << "Socket error: " << errorNum << '\n';
             mIsListening.store(false, std::memory_order::relaxed);
             break;
           }
         }
       } else {
-        std::cout << "Socket error: " << GetLastSocketError() << '\n';
+        std::cout << "Socket error: " << GetLastSocketError(mSocket->GetSocketHandle()) << '\n';
         mIsListening.store(false, std::memory_order::relaxed);
         break;
       }
@@ -232,7 +232,7 @@ Host::ListenForIncomingDataFromClients()
 
         if (readByteCount <= SOCKET_ERROR) {
           if (readByteCount != -WSAESHUTDOWN && readByteCount != -SOCKET_CLOSED) {
-            std::cout << "Socket error: " << GetLastSocketError() << '\n';
+            std::cout << "Socket error: " << GetLastSocketError(cSocket->GetSocketHandle()) << '\n';
           }
         }
 
@@ -274,7 +274,7 @@ Host::ListenForIncomingData()
 
       if (readByteCount <= SOCKET_ERROR) {
         if (readByteCount != -WSAESHUTDOWN && readByteCount != -SOCKET_CLOSED) {
-          std::cout << "Socket error: " << GetLastSocketError() << '\n';
+          std::cout << "Socket error: " << GetLastSocketError(mSocket->GetSocketHandle()) << '\n';
         }
 
         mIsListening.store(false, std::memory_order::relaxed);

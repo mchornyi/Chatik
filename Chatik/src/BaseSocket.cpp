@@ -23,8 +23,8 @@ BaseSocket::Bind(const SocketAddress& inToAddress) const
   const int error =
     bind(mSocket, &inToAddress.mSockAddr, Chatik::SocketAddress::GetSize());
   if (error != 0) {
-    ReportSocketError("UDPSocket::Bind");
-    return GetLastSocketError();
+    ReportSocketError("BaseSocket::Bind");
+    return GetLastSocketError(mSocket);
   }
 
   return NO_ERROR;
@@ -39,9 +39,9 @@ BaseSocket::ShutDown()
     return true;
   }
 
-  shutdown(GetSocket(), SD_SEND);
+  shutdown(GetSocketHandle(), SD_SEND);
 
-  const int errorNum = GetLastSocketError();
+  const int errorNum = GetLastSocketError(mSocket);
   const bool res = (errorNum == NO_ERROR);
   if (!res) {
     ReportSocketError("BaseSocket::ShutDown");

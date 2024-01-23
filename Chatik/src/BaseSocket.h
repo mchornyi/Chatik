@@ -14,7 +14,7 @@ public:
 
 	virtual ~BaseSocket();
 
-  SOCKET GetSocket() const { return mSocket; }
+  SOCKET GetSocketHandle() const { return mSocket; }
 
   bool IsValid() const
   {
@@ -47,7 +47,7 @@ public:
 
     if (result == SOCKET_ERROR) {
       ReportSocketError("UDPSocket::SetNonBlockingMode");
-      return GetLastSocketError();
+      return GetLastSocketError(mSocket);
     }
 
     return NO_ERROR;

@@ -11,7 +11,7 @@ TCPSocket::Connect(const SocketAddress& inAddress)
     connect(mSocket, &inAddress.mSockAddr, Chatik::SocketAddress::GetSize());
   if (err < 0) {
     ReportSocketError("TCPSocket::Connect");
-    return -GetLastSocketError();
+    return -GetLastSocketError(mSocket);
   }
 
 	m_serverAddress = inAddress;
@@ -25,7 +25,7 @@ TCPSocket::Listen(int inBackLog) const
   const int err = listen(mSocket, inBackLog);
   if (err < 0) {
     ReportSocketError("TCPSocket::Listen");
-    return -GetLastSocketError();
+    return -GetLastSocketError(mSocket);
   }
 
   return NO_ERROR;
@@ -40,7 +40,7 @@ TCPSocket::Accept(SocketAddress& outFromAddress) const
   if (newSocket != INVALID_SOCKET) {
     return TCPSocketPtr(new TCPSocket(newSocket));
   } else {
-    const int errorNum = GetLastSocketError();
+    const int errorNum = GetLastSocketError(mSocket);
 
     if (errorNum != WSAEWOULDBLOCK && errorNum != EAGAIN) {
       ReportSocketError("TCPSocket::Accept");
@@ -57,7 +57,7 @@ TCPSocket::Send(const void* inData, size_t inDataSize) const
 
   if (bytesSentCount < 0) {
     ReportSocketError("TCPSocket::Send");
-    return -GetLastSocketError();
+    return -GetLastSocketError(mSocket);
   }
 
   return bytesSentCount;
@@ -69,7 +69,7 @@ TCPSocket::Receive(void* inBuffer, size_t inMaxLen)
   const int bytesReceivedCount =
     recv(mSocket, static_cast<char*>(inBuffer), static_cast<int>(inMaxLen), 0);
 
-  const int error = GetLastSocketError();
+  const int error = GetLastSocketError(mSocket);
 
   if (error == WSAEWOULDBLOCK) {
     return 0;
@@ -97,6 +97,7 @@ TCPSocket::Receive(void* inBuffer, size_t inMaxLen)
 
   if (bytesReceivedCount == 0)
   {
+		LOG("Connection shutdown from %s", m_serverAddress.ToString().c_str());
 		mWasShutDown = true;
 		return -SOCKET_CLOSED;
   }

@@ -19,7 +19,7 @@ UDPSocket::Send(const void* inData,
     // we'll return error as negative number to indicate less than requested
     // amount of bytes sent...
     ReportSocketError("UDPSocket::SendTo");
-    return -GetLastSocketError();
+    return -GetLastSocketError(mSocket);
   }
 
   return byteSentCount;
@@ -43,7 +43,7 @@ UDPSocket::Receive(void* inBuffer,
     return readByteCount;
   }
 
-  const int error = GetLastSocketError();
+  const int error = GetLastSocketError(mSocket);
 
   if (error == WSAEWOULDBLOCK) {
     return 0;

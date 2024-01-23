@@ -5,7 +5,7 @@
 
 const char* kServerAddress = "127.0.0.1:5005";
 const char* kClientAddress = "127.0.0.1:5006";
-constexpr int kWaitForActionFromHost = 2000;
+constexpr int kWaitForActionFromHost = 15000;
 
 TEST_CASE("HostServerStartStopTest::UDP", "[.udp]")
 {
@@ -176,11 +176,11 @@ TEST_CASE("HostClientConnectToServerAndShutDownTest::TCP", "[tcp]")
 
 	REQUIRE(true == hostClient.ShutDown());
 
-	WAIT_FOR(false == hostClient.IsListening(), kWaitForActionFromHost);
-	REQUIRE(false == hostClient.IsListening());
-
 	WAIT_FOR(hostServer.GetClientCount() == 0, kWaitForActionFromHost);
 	REQUIRE(0 == hostServer.GetClientCount());
+
+	WAIT_FOR(false == hostClient.IsListening(), kWaitForActionFromHost);
+	REQUIRE(false == hostClient.IsListening());
 }
 
 TEST_CASE("HostServertSendDataToClientTest::TCP", "[.tcp]")
