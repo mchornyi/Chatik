@@ -15,7 +15,7 @@ public:
     if (s != INVALID_SOCKET) {
       return UDPSocketPtr(new UDPSocket(s));
     } else {
-      ReportSocketError("SocketUtil::CreateUDPSocket");
+      ReportSocketError("SocketUtil::CreateUDPSocket", GetLastSocketError());
       return nullptr;
     }
   }

@@ -19,7 +19,7 @@ class TCPSocket : public BaseSocket
         }
         else
         {
-            ReportSocketError("SocketUtil::CreateTCPSocket");
+            ReportSocketError("SocketUtil::CreateTCPSocket", GetLastSocketError());
             return nullptr;
         }
     }

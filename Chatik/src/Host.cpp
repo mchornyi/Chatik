@@ -151,7 +151,7 @@ int Host::SendData(const char *data, int dataLen, const SocketAddress &toAddress
                     const int errorNum = GetLastSocketError(socket->GetSocketHandle());
                     if (errorNum != WSAEWOULDBLOCK && errorNum != EAGAIN)
                     {
-                        ReportSocketError("Host::SendData");
+                        ReportSocketError("Host::SendData", errorNum);
                     }
                     return -errorNum;
                 }

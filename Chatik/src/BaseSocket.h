@@ -49,8 +49,9 @@ class BaseSocket
 
         if (result == SOCKET_ERROR)
         {
-            ReportSocketError("UDPSocket::SetNonBlockingMode");
-            return GetLastSocketError(mSocket);
+			const int errorNum = GetLastSocketError(mSocket);
+            ReportSocketError("UDPSocket::SetNonBlockingMode", errorNum);
+            return errorNum;
         }
 
         return NO_ERROR;

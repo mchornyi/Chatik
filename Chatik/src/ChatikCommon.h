@@ -129,10 +129,8 @@ inline int GetLastSocketError(SOCKET sockfd = -1)
 #endif
 }
 
-inline void ReportSocketError(const char *inOperationDesc)
+inline void ReportSocketError(const char *inOperationDesc, int errorNum)
 {
-    const int errorNum = GetLastSocketError();
-
 #if _WIN32
     LPVOID lpMsgBuf;
 

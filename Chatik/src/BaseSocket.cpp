@@ -22,7 +22,7 @@ int BaseSocket::Bind(const SocketAddress &inToAddress) const
     const int error = bind(mSocket, &inToAddress.mSockAddr, Chatik::SocketAddress::GetSize());
     if (error != 0)
     {
-        ReportSocketError("BaseSocket::Bind");
+        ReportSocketError("BaseSocket::Bind", error);
         return GetLastSocketError(mSocket);
     }
 
@@ -44,7 +44,7 @@ bool BaseSocket::ShutDown()
     const bool res = (errorNum == NO_ERROR);
     if (!res)
     {
-        ReportSocketError("BaseSocket::ShutDown");
+        ReportSocketError("BaseSocket::ShutDown", errorNum);
     }
 
     mIsShutDown = res;

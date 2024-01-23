@@ -11,8 +11,9 @@ int TCPSocket::Connect(const SocketAddress &inAddress)
     const int err = connect(mSocket, &inAddress.mSockAddr, Chatik::SocketAddress::GetSize());
     if (err < 0)
     {
-        ReportSocketError("TCPSocket::Connect");
-        return -GetLastSocketError(mSocket);
+        const int errorNum = GetLastSocketError(mSocket);
+        ReportSocketError("TCPSocket::Connect", errorNum);
+        return errorNum;
     }
 
     m_serverAddress = inAddress;
@@ -25,8 +26,9 @@ int TCPSocket::Listen(int inBackLog) const
     const int err = listen(mSocket, inBackLog);
     if (err < 0)
     {
-        ReportSocketError("TCPSocket::Listen");
-        return -GetLastSocketError(mSocket);
+        const int errorNum = GetLastSocketError(mSocket);
+        ReportSocketError("TCPSocket::Listen", errorNum);
+        return errorNum;
     }
 
     return NO_ERROR;
@@ -45,9 +47,9 @@ BaseSocket *TCPSocket::Accept(SocketAddress &outFromAddress) const
     {
         const int errorNum = GetLastSocketError(mSocket);
 
-        if (errorNum != WSAEWOULDBLOCK && errorNum != EAGAIN)
+        if (errorNum != NO_ERROR && errorNum != WSAEWOULDBLOCK && errorNum != EAGAIN)
         {
-            ReportSocketError("TCPSocket::Accept");
+            ReportSocketError("TCPSocket::Accept", errorNum);
         }
         return nullptr;
     }
@@ -59,8 +61,9 @@ int TCPSocket::Send(const void *inData, size_t inDataSize) const
 
     if (bytesSentCount < 0)
     {
-        ReportSocketError("TCPSocket::Send");
-        return -GetLastSocketError(mSocket);
+		const int errorNum = GetLastSocketError(mSocket);
+        ReportSocketError("TCPSocket::Send", errorNum);
+        return errorNum;
     }
 
     return bytesSentCount;
@@ -74,21 +77,21 @@ int TCPSocket::Receive(void *inBuffer, size_t inMaxLen)
         return bytesReceivedCount;
     }
 
-    const int error = GetLastSocketError(mSocket);
+    const int errorNum = GetLastSocketError(mSocket);
 
-    if (bytesReceivedCount == 0 && error == NO_ERROR)
+    if (bytesReceivedCount == 0 && errorNum == NO_ERROR)
     {
         LOG("Connection shutdown from %s", m_serverAddress.ToString().c_str());
         mWasShutDown = true;
         return -SOCKET_CLOSED;
     }
 
-    if (error == WSAEWOULDBLOCK)
+    if (errorNum == WSAEWOULDBLOCK)
     {
         return 0;
     }
 
-    if (error == WSAECONNRESET)
+    if (errorNum == WSAECONNRESET)
     {
         // this can happen if a client closed and we haven't DC'd yet.
         // this is the ICMP message being sent back saying the port on that computer
@@ -98,17 +101,17 @@ int TCPSocket::Receive(void *inBuffer, size_t inMaxLen)
         return -WSAECONNRESET;
     }
 
-    if (error == WSAESHUTDOWN)
+    if (errorNum == WSAESHUTDOWN)
     {
         LOG("Connection shutdown from %s", m_serverAddress.ToString().c_str());
         mWasShutDown = true;
         return -WSAESHUTDOWN;
     }
 
-    if (error != NO_ERROR)
+    if (errorNum != NO_ERROR)
     {
-        ReportSocketError("TCPSocket::Receive");
+        ReportSocketError("TCPSocket::Receive", errorNum);
     }
 
-    return -error;
+    return -errorNum;
 }

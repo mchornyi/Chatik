@@ -21,7 +21,7 @@ TEST_CASE("CreateUDPSocketTest", "[udp]")
     res = getsockopt(s->GetSocketHandle(), SOL_SOCKET, SO_PROTOCOL_INFO, (char *)&socket_info, &size);
     if (res != 0)
     {
-        ReportSocketError("CreateUDPSocketTest");
+        ReportSocketError("CreateUDPSocketTest", GetLastSocketError(s->GetSocketHandle()));
     }
 
     iSocketType = socket_info.iSocketType;
@@ -32,7 +32,8 @@ TEST_CASE("CreateUDPSocketTest", "[udp]")
         res = getsockopt(s->GetSocketHandle(), SOL_SOCKET, SO_TYPE, &iSocketType, &size);
         if (res != 0)
         {
-            ReportSocketError("CreateUDPSocketTest");
+            const int errorNum = GetLastSocketError(s->GetSocketHandle());
+            ReportSocketError("CreateUDPSocketTest", errorNum);
         }
     }
 
@@ -41,7 +42,8 @@ TEST_CASE("CreateUDPSocketTest", "[udp]")
         res = getsockopt(s->GetSocketHandle(), SOL_SOCKET, SO_PROTOCOL, &iProtocol, &size);
         if (res != 0)
         {
-            ReportSocketError("CreateUDPSocketTest");
+            const int errorNum = GetLastSocketError(s->GetSocketHandle());
+            ReportSocketError("CreateUDPSocketTest", errorNum);
         }
     }
 #endif
@@ -70,7 +72,7 @@ TEST_CASE("CreateTCPSocketTest", "[tcp]")
     res = getsockopt(s->GetSocketHandle(), SOL_SOCKET, SO_PROTOCOL_INFO, (char *)&socket_info, &size);
     if (res != 0)
     {
-        ReportSocketError("CreateTCPSocketTest");
+        ReportSocketError("CreateTCPSocketTest", GetLastSocketError(s->GetSocketHandle()));
     }
 
     iSocketType = socket_info.iSocketType;
@@ -81,7 +83,8 @@ TEST_CASE("CreateTCPSocketTest", "[tcp]")
         res = getsockopt(s->GetSocketHandle(), SOL_SOCKET, SO_TYPE, &iSocketType, &size);
         if (res != 0)
         {
-            ReportSocketError("CreateTCPSocketTest");
+            const int errorNum = GetLastSocketError(s->GetSocketHandle());
+            ReportSocketError("CreateTCPSocketTest", errorNum);
         }
     }
 
@@ -90,7 +93,8 @@ TEST_CASE("CreateTCPSocketTest", "[tcp]")
         res = getsockopt(s->GetSocketHandle(), SOL_SOCKET, SO_PROTOCOL, &iProtocol, &size);
         if (res != 0)
         {
-            ReportSocketError("CreateTCPSocketTest");
+            const int errorNum = GetLastSocketError(s->GetSocketHandle());
+            ReportSocketError("CreateTCPSocketTest", errorNum);
         }
     }
 #endif

@@ -9,7 +9,7 @@ bool SocketUtil::StaticInit()
     const int iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
     if (iResult != NO_ERROR)
     {
-        ReportSocketError("Starting Up");
+        ReportSocketError("Starting Up", GetLastSocketError());
         return false;
     }
 #endif
@@ -99,10 +99,10 @@ SocketAddress SocketUtil::CreateIPv4FromString(const string &inString)
     hint.ai_family = AF_INET;
 
     addrinfo *result = nullptr;
-    const int error = getaddrinfo(host.c_str(), service.c_str(), &hint, &result);
-    if (error != 0)
+    const int errorNum = getaddrinfo(host.c_str(), service.c_str(), &hint, &result);
+    if (errorNum != 0)
     {
-        ReportSocketError("SocketUtil::CreateIPv4FromString");
+        ReportSocketError("SocketUtil::CreateIPv4FromString", errorNum);
         return {};
     }
 
