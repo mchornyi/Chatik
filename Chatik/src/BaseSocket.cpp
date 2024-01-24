@@ -22,8 +22,9 @@ int BaseSocket::Bind(const SocketAddress &inToAddress) const
     const int error = bind(mSocket, &inToAddress.mSockAddr, Chatik::SocketAddress::GetSize());
     if (error != 0)
     {
-        ReportSocketError("BaseSocket::Bind", error);
-        return GetLastSocketError(mSocket);
+        const int errorNum = GetLastSocketError();
+        ReportSocketError("BaseSocket::Bind", errorNum);
+        return -errorNum;
     }
 
     return NO_ERROR;
