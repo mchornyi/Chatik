@@ -1,6 +1,7 @@
 #include "BaseSocket.h"
 
 #include <cassert>
+#include <sstream>
 
 #include "SocketAddress.h"
 
@@ -23,7 +24,9 @@ int BaseSocket::Bind(const SocketAddress &inToAddress) const
     if (error != 0)
     {
         const int errorNum = GetLastSocketError();
-        ReportSocketError("BaseSocket::Bind", errorNum);
+        std::stringstream ss;
+        ss << "BaseSocket::Bind: " << inToAddress.ToString();
+        ReportSocketError(ss.str().c_str(), errorNum);
         return -errorNum;
     }
 
