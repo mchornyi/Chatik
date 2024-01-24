@@ -12,11 +12,8 @@ Host::Host(bool isServer, bool useTCP /*=false*/)
     : mIsServer(isServer), mUseTCP(useTCP), mSocket(useTCP ? TCPSocket::CreateTCPSocket(SocketAddressFamily::INET)
                                                            : UDPSocket::CreateUDPSocket(SocketAddressFamily::INET))
 {
-    int res = mSocket->SetNonBlockingMode(true);
-    assert(res == NO_ERROR);
-
-    res = mSocket->Bind(SocketAddress(INADDR_ANY, mIsServer ? PORT_SERVER : PORT_CLIENT));
-    assert(res == NO_ERROR);
+    mSocket->SetNonBlockingMode(true);
+    mSocket->Bind(SocketAddress(INADDR_ANY, mIsServer ? PORT_SERVER : PORT_CLIENT));
 }
 
 Host::~Host()
